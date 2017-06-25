@@ -1,0 +1,54 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:pe="http://primefaces.org/ui/extensions">
+
+<f:view contentType="text/html">
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<title>Home</title>
+	<ui:debug />
+	<f:metadata>
+		<ui:insert name="metadata" />
+	</f:metadata>
+	<h:head>
+		<h:outputStylesheet name="css/fmart.css" />
+		<h:outputStylesheet name="css/style.css" />
+		<h:outputStylesheet name="css/keyframes.css" />
+	</h:head>
+	<h:body>
+		<ui:composition template="templates/template.xhtml">
+			<ui:define name="pagebody">
+				<div id="middle">
+					<div id="content">
+						<div id="show">
+							<div class="img1 slide">
+								<!-- <img src="resources/images/slideshow1.jpg" alt="image1"  id="image"/> -->
+								<h:graphicImage library="images" name="slideshow1.jpg" alt="image1" styleClass="image"/>
+							</div>
+							<div class="img2 slide">
+								<h:graphicImage library="images" name="slideshow2.jpg" alt="image2" styleClass="image"/>
+							</div>
+							<div class="img3 slide">
+								<h:graphicImage library="images" name="slideshow3.jpg" alt="image3" styleClass="image"/>
+							</div>
+							<div class="img4 slide">
+								<h:graphicImage library="images" name="slideshow1.jpg" alt="image4" styleClass="image"/>
+							</div>
+							<div class="img5 slide">
+								<h:graphicImage library="images" name="slideshow2.jpg" alt="image5" styleClass="image"/>
+							</div>
+						</div>
+					</div>
+					<div class="clear"></div>
+				</div>
+				
+			</ui:define>
+		</ui:composition>
+		
+		
+	</h:body>
+</f:view>
+</html>

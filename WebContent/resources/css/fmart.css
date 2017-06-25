@@ -1,0 +1,212 @@
+#footer {
+	background-color: #EAF4FD;
+	color: black;
+	clear: both;
+	text-align: center;
+	width: 70%;
+	border-radius: 10px;
+	height: 3vh;
+}
+
+#header {
+	background-color: #EAF4FD;
+	color: black;
+	text-align: left;
+	clear: both;
+	width: 70%;
+	height: 8vh;
+	border-radius: 10px;
+}
+
+#menu {
+	width: 71%;
+	height: 5vh;
+}
+
+#pagebody {padding-left =15%;
+	width: 70%;
+	height: 83vh;
+}
+
+ul#actions {
+	display: none;
+}
+
+.actions:hover ul#actions {
+	display: block;
+}
+/* .centeredMenuBar .ui-menubar {
+	text-align: left;
+}
+
+.centeredMenuBar .ui-menu-list {
+	display: inline-block;
+}
+
+*/
+.ui-menu .ui-menuitem-link {
+	width: 100%;
+	padding-right: 5px;
+}
+
+.ui-menubar {
+	margin: 10px;
+	font-size: large;
+}
+
+.ui-menubar .ui-menu-list {
+	font-size: small;
+	font-weight: 900;
+}
+
+.ui-layout-center {
+	z-index: 20 !important;
+	overflow: visible !important;
+}
+
+.ui-layout-center .ui-layout-unit-content {
+	overflow: visible !important;
+}
+
+.ui-widget,.ui-widget .ui-widget {
+	font-size: 90% !important;
+}
+
+.ui-layout-north {
+	z-index: 20 !important;
+	overflow: visible !important;
+}
+
+.ui-layout-north .ui-layout-unit-content {
+	overflow: visible !important;
+}
+
+html {
+	overflow: auto !important
+}
+
+body {
+	font-family: Arial, "Trebuchet MS", Verdana, sans-serif;
+	font-size: 12px;
+	padding: 0 !important;
+	margin: 0
+}
+
+input,select,textarea,button,.ui-widget,.ui-widget input,.ui-widget select,.ui-widget textarea,.ui-widget button
+	{
+	font-family: Arial, "Trebuchet MS", Verdana, sans-serif;
+	font-size: 12px
+}
+
+.ui-widget-header,.ui-widget-content,.ui-widget-header .ui-widget-header,.ui-widget-content .ui-widget-content
+	{
+	font-family: Arial, "Trebuchet MS", Verdana, sans-serif;
+	font-size: 12px !important
+}
+
+.ui-chkbox .ui-chkbox-label {
+	margin: 3px
+}
+
+.ui-selectmanycheckbox label {
+	margin-left: 1px;
+	margin-top: auto
+}
+
+.ui-selectoneradio label {
+	margin-left: 1px
+}
+
+.ui-datatable thead th,.ui-datatable tbody td,.ui-datatable tfoot td {
+	white-space: normal
+}
+
+.ui-datatable .ui-sortable-column-icon {
+	margin: 0 -10px 0 0 !important
+}
+
+table .formColumn1 {
+	padding-right: 10px;
+	text-align: right;
+	white-space: nowrap;
+	width: 1%
+}
+
+table .formColumn2 input {
+	width: 200px
+}
+
+table .formColumn input {
+	width: 250px
+}
+
+.radioButtons,.radioButtons td {
+	white-space: nowrap;
+	border: none !important
+}
+
+.radioLineDirection td:first-child {
+	padding-right: 15px
+}
+
+.radioButtons input {
+	margin: 2px 0 2px 0
+}
+
+.radioButtons input,.radioButtons label {
+	vertical-align: middle
+}
+
+.radioButtons label {
+	margin-left: 4px
+}
+
+.checkBoxes {
+	white-space: nowrap
+}
+
+.checkBoxes input,.checkBoxes label {
+	vertical-align: middle
+}
+
+table .columnTop {
+	vertical-align: top
+}
+
+.ui-tree .ui-tree-node {
+	cursor: pointer
+}
+
+.ui-tooltip {
+	max-width: 400px
+}
+
+/* -----home page css-----*/
+.gear-icon .settingsButton {
+	padding-right: 4px;
+	background: url(images/gear_icon.svg);
+}
+
+.gear-icon {
+	width: 30px;
+	height: 30px;
+	background: url(gear_icon.svg);
+}
+
+/*-----popup panel grid css-------*/
+.panelGrid tr,.panelGrid td {
+	border: none !important;
+	border-style: hidden !important;
+}
+
+td.selectionDisabled .ui-chkbox{
+display: none;
+}
+
+.ui-paginator a, .exporter .ui-datatable-header a {
+    float: right;
+    margin-right: 5px;
+}
+.printHeaderGrid tr, .printHeaderGrid td {
+   border-style: none !important
+}

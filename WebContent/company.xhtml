@@ -1,0 +1,193 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:pe="http://primefaces.org/ui/extensions">
+
+<f:view contentType="text/html">
+	<h:head>
+
+		<script type="text/javascript">
+			function handlePageSubmitRequest(xhr, status, args, dialogName,
+					formName) {
+				dialog = jQuery('#' + dialogName);
+				if (args.validationFailed) {
+					dialog.effect("shake", {
+						times : 3
+					}, 100);
+				} else {
+					clearForm(formName);
+					PF('newCompanyDialog').hide();
+					PF('companyDetailDialog').hide();
+				}
+			}
+			function clearForm(formName) {
+				jQuery('#' + formName).each(function() {
+					this.reset();
+				});
+			}
+		</script>
+
+	</h:head>
+
+	<h:body>
+		<ui:composition template="templates/template.xhtml">
+
+			<ui:define name="pagebody">
+				<h:form id="form">
+					<p:spacer height="25px"></p:spacer>
+					<p:growl id="messages" showDetail="true" life="3000"  />
+					<p:commandButton id="saveBtn" value="Create Company"
+						icon="ui-icon ui-icon-disk" style="margin:0"
+						oncomplete="PF('newCompanyDialog').show()"/>
+					<p:dataTable id="dataTable" var="companies"
+						value="#{viewCompanyManagedBean.companies}"
+						paginator="true" rows="10" rowKey="#{companies.id}"
+						selection="#{viewCompanyManagedBean.selectedCompanies}">
+						<f:facet name="header">
+						</f:facet>
+						<p:column sortBy="#{companies.name}">
+							<f:facet name="header">
+								<h:outputText value="Name" />
+							</f:facet>
+							<p:commandLink value="#{companies.name}"
+								update=":companyDetailForm:display"
+								oncomplete="PF('companyDetailDialog').show()">
+								<f:setPropertyActionListener value="#{companies}"
+									target="#{viewCompanyManagedBean.selectedCompany}" />
+							</p:commandLink>
+						</p:column>
+
+						<p:column sortBy="#{companies.address}">
+							<f:facet name="header">
+								<h:outputText value="Address" />
+							</f:facet>
+							<h:outputText value="#{companies.address}" />
+						</p:column>
+
+						<p:column sortBy="#{companies.city}">
+							<f:facet name="header">
+								<h:outputText value="City" />
+							</f:facet>
+							<h:outputText value="#{companies.city}" />
+						</p:column>
+
+						<p:column sortBy="#{companies.state}">
+							<f:facet name="header">
+								<h:outputText value="State" />
+							</f:facet>
+							<h:outputText value="#{companies.state}" />
+						</p:column>
+						<p:column sortBy="#{companies.cashInHand}">
+							<f:facet name="header">
+								<h:outputText value="Cash in Hand" />
+							</f:facet>
+							<h:outputText value="#{companies.cashInHand}" />
+						</p:column>
+					</p:dataTable>
+					<p:blockUI block="dataTable" trigger="dataTable">
+						<br />
+						<p:graphicImage name="/images/ajaxloadingbar.gif" />
+					</p:blockUI>
+				</h:form>
+				<p:dialog header="Create New Company" widgetVar="newCompanyDialog"
+					resizable="false" id="newCompDlg" draggable="true" modal="true"
+					closeOnEscape="true">
+					<h:form id="newUserForm">
+						<p:panelGrid id="displayNewUser" columns="2" cellpadding="4"
+							style="margin:0 auto" styleClass="panelGrid">
+							<p:outputLabel value="Name :" for="newCompanyName"/>
+							<p:inputText value="#{viewCompanyManagedBean.newCompany.name}"
+								required="true" id="newCompanyName" label="Company Name"
+								requiredMessage="Please Enter Company Name" maxlength="30">
+							</p:inputText>
+
+							<p:outputLabel value="Address :" for="newComapnyAddress"/>
+							<p:inputText value="#{viewCompanyManagedBean.newCompany.address}"
+								id="newComapnyAddress"  label="Company Address"
+								 maxlength="50">
+							</p:inputText>
+
+							<p:outputLabel value="City :" for="newComapnyCity"/>
+							<p:inputText value="#{viewCompanyManagedBean.newCompany.city}"
+							 id="newComapnyCity" label="City"
+								 maxlength="20">
+							</p:inputText>
+
+							<p:outputLabel value="State :" for="newComapnyState"/>
+							<p:inputText value="#{viewCompanyManagedBean.newCompany.state}"
+								 id="newComapnyState" label="State"
+								 maxlength="20">
+							</p:inputText>
+
+							<p:outputLabel value="Cash in hand :" for="newComapnycih"/>
+							<pe:inputNumber
+								value="#{viewCompanyManagedBean.newCompany.cashInHand}"
+								minValue="0" required="true" id="newComapnycih"
+								label="Cach in Hand" requiredMessage="Please Enter Cash in Hand"
+								maxlength="7" maxValue="9999999">
+							</pe:inputNumber>
+
+							<f:facet name="footer">
+								<p:commandButton value="Submit"
+									update=":form:dataTable, :form:messages"
+									oncomplete=" handlePageSubmitRequest(xhr, status, args, 'newCompDlg','newUserForm');"
+									actionListener="#{viewCompanyManagedBean.saveCompany}" />
+								<p:commandButton type="reset" value="Reset"></p:commandButton>
+							</f:facet>
+						</p:panelGrid>
+					</h:form>
+				</p:dialog>
+
+				<p:dialog header="Company Detail" widgetVar="companyDetailDialog"
+					resizable="false" id="compDlg" draggable="true" modal="true"
+					closeOnEscape="true">
+					<h:form id="companyDetailForm">
+						<p:panelGrid id="display" columns="2" cellpadding="4"
+							style="margin:0 auto;" styleClass="panelGrid">
+							<p:outputLabel value="Name :" for="companyName"/>
+							<p:inputText id="companyName"
+								value="#{viewCompanyManagedBean.selectedCompany.name}"
+								required="true" requiredMessage="Please Enter Company Name" />
+
+							<p:outputLabel value="Address :" for="companyAddress"/>
+							<p:inputText id="companyAddress" maxlength="45"
+								value="#{viewCompanyManagedBean.selectedCompany.address}"
+								 />
+
+							<p:outputLabel value="City :" for="companyCity"/>
+							<p:inputText id="companyCity" maxlength="16"
+								value="#{viewCompanyManagedBean.selectedCompany.city}"
+							 />
+
+							<p:outputLabel value="State :" for="companyState"/>
+							<p:inputText id="companyState"
+								value="#{viewCompanyManagedBean.selectedCompany.state}"
+								maxlength="16" />
+								
+							<p:outputLabel value="Cash in hand :" for="cashInHand"/>
+							<pe:inputNumber id="cashInHand"
+								value="#{viewCompanyManagedBean.selectedCompany.cashInHand}"
+								minValue="0" required="true"
+								requiredMessage="Please Enter Cash in Hand" maxlength="16" />
+
+							<f:facet name="footer">
+								<p:commandButton value="Update"
+									update=":form:dataTable, :form:messages"
+									oncomplete="handlePageSubmitRequest(xhr, status, args, 'compDlg','companyDetailForm'); "
+									actionListener="#{viewCompanyManagedBean.updateCompany}" />
+							</f:facet>
+						</p:panelGrid>
+					</h:form>
+				</p:dialog>
+
+			</ui:define>
+
+		</ui:composition>
+	</h:body>
+
+</f:view>
+</html>
+

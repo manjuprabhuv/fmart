@@ -1,0 +1,369 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:pe="http://primefaces.org/ui/extensions">
+
+<f:view contentType="text/html">
+	<h:head>
+
+		<script type="text/javascript">
+			function handlePageSubmitRequest(xhr, status, args, dialogName,
+					formName) {
+				dialog = jQuery('#' + dialogName);
+				if (args.validationFailed) {
+					dialog.effect("shake", {
+						times : 3
+					}, 100);
+				} else {
+					clearForm(formName);
+					PF('newCustomerDialog').hide();
+				}
+			}
+			function handleAddRequest(xhr, status, args, dialogName, formName) {
+				dialog = jQuery('#' + dialogName);
+				if (args.validationFailed) {
+					dialog.effect("shake", {
+						times : 3
+					}, 100);
+				} else {
+					clearForm(formName);
+					PF('addProDlg').hide();
+				}
+			}
+			function handleAddMoreRequest(xhr, status, args, dialogName,
+					formName) {
+				dialog = jQuery('#' + dialogName);
+				if (args.validationFailed) {
+					dialog.effect("shake", {
+						times : 3
+					}, 100);
+				} else {
+					clearForm(formName);
+				}
+			}
+			function clearForm(formName) {
+				jQuery('#' + formName).each(function() {
+					this.reset();
+				});
+			}
+		</script>
+	</h:head>
+
+	<h:body>
+		<ui:composition template="templates/template.xhtml">
+
+			<ui:define name="pagebody">
+				<h:form id="sale_form">
+
+					<p:growl id="sale_messages" showDetail="true" life="3000" />
+					<p:spacer height="5px" />
+
+					<p:commandButton id="sale_entry" rendered="false"
+						binding="#{saleBean.pageTypeButton}" />
+
+					<p:panelGrid style="width:100%;" id="panel">
+						<f:facet name="header">
+							<p:row>
+								<p:column colspan="6">Booking - Sale Entry</p:column>
+							</p:row>
+						</f:facet>
+
+						<p:row>
+							<p:column colspan="6">
+								<p:spacer height="0" />
+							</p:column>
+						</p:row>
+						<p:row>
+							<p:column colspan="1">
+								<p:outputLabel value="Search Customer By Phone  : "
+									for="SalePhone" />
+							</p:column>
+							<p:column colspan="1">
+								<p:autoComplete id="SalePhone" dropdown="true"
+									value="#{saleBean.selectedCustomer}"
+									completeMethod="#{saleBean.populateCustomers}"
+									converter="genericConverter" var="customer"
+									update=":sale_form:newSaleName"
+									itemLabel="#{customer.phoneString}" itemValue="#{customer.id}">
+									<p:ajax event="itemSelect" partialSubmit="true"
+										update=":sale_form:newSaleName, :sale_form:newSaleAddress, :sale_form:newSaleCustPhone"></p:ajax>
+								</p:autoComplete>
+							</p:column>
+							<p:column colspan="4">
+								<p:commandButton id="saveBtn" value="Create Customer"
+									icon="ui-icon ui-icon-disk" style="margin:0"
+									oncomplete="PF('newCustomerDialog').show()" />
+							</p:column>
+						</p:row>
+						<p:row>
+							<p:column>
+								<p:outputLabel value="Customer Name : " for="newSaleName" />
+							</p:column>
+							<p:column>
+								<p:outputLabel value="#{saleBean.selectedCustomer.name}"
+									id="newSaleName" />
+							</p:column>
+							<p:column>
+								<p:outputLabel value="Company : " for="saleCompanyName" />
+							</p:column>
+							<p:column>
+								<p:selectOneMenu id="saleCompanyName"
+									value="#{saleBean.selectedCompany.id}"
+									required="#{!param['SHOW_VALIDATION']}" disabled="true">
+									<f:converter converterId="com.fmart.ui.utils.CompanyConverter" />
+									<f:selectItems value="#{constantsBean.getCompanies()}"
+										var="company" itemValue="#{company.id}"
+										itemLabel="#{company.name}" />
+								</p:selectOneMenu>
+							</p:column>
+
+							<p:column>
+								<p:outputLabel for="date" value="Date:" />
+							</p:column>
+							<p:column>
+								<p:calendar id="date" value="#{saleBean.newSale.created}"
+									pattern="dd/MM/yyyy" showOn="button" maxdate="01/01/2030"
+									required="true" requiredMessage="Please Enter the Date"
+									disabled="true">
+									<f:convertDateTime pattern="dd/MM/yyyy" type="date" />
+								</p:calendar>
+							</p:column>
+						</p:row>
+
+						<p:row>
+							<p:column>
+								<p:outputLabel value="Customer Address : " for="newSaleAddress" />
+							</p:column>
+							<p:column colspan="3">
+								<p:outputLabel value="#{saleBean.selectedCustomer.address}"
+									id="newSaleAddress" />
+							</p:column>
+							<p:column>
+								<p:outputLabel value="Customer Phone : " for="newSaleCustPhone" />
+							</p:column>
+							<p:column>
+								<p:outputLabel value="#{saleBean.selectedCustomer.phone}"
+									id="newSaleCustPhone" />
+							</p:column>
+						</p:row>
+						<p:row>
+							<p:column colspan="1">
+								<p:outputLabel value="Advance Deposit : " for="newSaleAdvance" />
+							</p:column>
+							<p:column colspan="5">
+								<pe:inputNumber value="#{saleBean.newSale.advance}"
+									id="newSaleAdvance" maxlength="10" maxValue="9999999999" 
+									required="#{!param['SHOW_VALIDATION']}" decimalPlaces="2"
+									requiredMessage="Please Enter Advance Deposit!"/>
+							</p:column>
+						</p:row>
+
+						<p:row>
+							<p:column colspan="6">
+								<p:commandButton id="addProduct" value="Add Product"
+									style="margin:0" oncomplete="PF('addProDlg').show()" />
+								<p:commandButton id="deleteProduct" value="Delete Product"
+									style="margin:0" actionListener="#{saleBean.deleteSaleDetails}"
+									update=":sale_form:sale_datatable, :sale_form:sale_messages">
+									<f:param name="SHOW_VALIDATION" value="true"></f:param>
+									<p:confirm header="Confirmation"
+										message="Are you sure you want to delete this product?"
+										icon="ui-icon-alert" />
+								</p:commandButton>
+							</p:column>
+						</p:row>
+						<p:row>
+							<p:column colspan="6">
+								<p:dataTable id="sale_datatable" var="sale"
+									value="#{saleBean.saleDetails}" paginator="true" rows="10"
+									rowKey="#{sale.id}" selection="#{saleBean.selectedSaleDetails}">
+									<p:column selectionMode="multiple" style="width:18px" />
+									<p:column sortBy="#{sale.product.productGrp.name}">
+										<f:facet name="header">
+											<h:outputText value="Product Group" />
+										</f:facet>
+										<h:outputText value="#{sale.product.productGrp.name}" />
+									</p:column>
+									<p:column sortBy="#{sale.product.name}">
+										<f:facet name="header">
+											<h:outputText value="Product Name" />
+										</f:facet>
+										<h:outputText value="#{sale.product.name}" />
+									</p:column>
+									<p:column sortBy="#{sale.quantity}">
+										<f:facet name="header">
+											<h:outputText value="Quantity" />
+										</f:facet>
+										<pe:inputNumber value="#{sale.quantity}" decimalPlaces="0"
+											thousandSeparator="" required="true" />
+									</p:column>
+									<p:column sortBy="#{sale.customised}">
+										<f:facet name="header">
+											<h:outputText value="Customised" />
+										</f:facet>
+										<p:selectBooleanCheckbox disabled="true"
+											value="#{sale.customised}" />
+									</p:column>
+									<p:column sortBy="#{sale.remarks}">
+										<f:facet name="header">
+											<h:outputText value="Remarks" />
+										</f:facet>
+										<p:inputText value="#{sale.remarks}" maxlength="50" />
+
+									</p:column>
+									<p:column sortBy="#{sale.rate}">
+										<f:facet name="header">
+											<h:outputText value="Unit Price" />
+										</f:facet>
+										<pe:inputNumber value="#{sale.rate}" thousandSeparator=""
+											decimalPlaces="0" />
+									</p:column>
+								</p:dataTable>
+								<p:blockUI block="sale_datatable" trigger="sale_datatable">
+									<br />
+									<p:graphicImage name="/images/ajaxloadingbar.gif" />
+								</p:blockUI>
+							</p:column>
+						</p:row>
+						<p:row>
+							<p:column colspan="6">
+								<p:commandButton id="book_order" value="Book Order"
+									style="margin:0"
+									update=":sale_form:sale_datatable, :sale_form:sale_messages, :sale_form"
+									actionListener="#{saleBean.saveSaleEntry}">
+									<f:param name="action" value="order" />
+								</p:commandButton>
+								<p:commandButton id="cancel" value="Cancel" style="margin:0"
+									actionListener="#{saleBean.clearSaleDetails}"
+									update=":sale_form:sale_datatable, :sale_form:sale_messages, :sale_form" />
+							</p:column>
+						</p:row>
+
+					</p:panelGrid>
+					<p:confirmDialog global="true">
+						<p:commandButton value="Yes" type="button"
+							styleClass="ui-confirmdialog-yes" icon="ui-icon-check" />
+						<p:commandButton value="No" type="button"
+							styleClass="ui-confirmdialog-no" icon="ui-icon-close" />
+					</p:confirmDialog>
+
+
+				</h:form>
+				<p:dialog header="Add Product" widgetVar="addProDlg"
+					resizable="false" id="addProDlg" draggable="true" modal="true"
+					closeOnEscape="true">
+					<p:ajax event="close" immediate="true" update="addProDlg"
+						resetValues="true" />
+					<h:form id="addProductForm">
+						<p:panelGrid id="display" columns="2" cellpadding="4"
+							style="margin:0 auto;" styleClass="panelGrid">
+							<p:outputLabel value="Product Group :" for="productGrpP" />
+							<p:autoComplete id="productGrpP" dropdown="true"
+								value="#{saleBean.selectedProductGroup}"
+								completeMethod="#{saleBean.populateProductGroups}"
+								converter="genericConverter" var="productGroup"
+								itemLabel="#{productGroup.name}" itemValue="#{productGroup.id}"
+								update=":addProDlg:productP" required="true"
+								requiredMessage="Please Select Product Group">
+								<p:ajax event="itemSelect" partialSubmit="true" update=":addProductForm:productP"></p:ajax>
+							</p:autoComplete>
+
+							<p:outputLabel value="Product :" for="productP" />
+							<p:autoComplete id="productP" dropdown="true"
+								value="#{saleBean.selectedProduct}"
+								completeMethod="#{saleBean.populateProducts}"
+								converter="genericConverter" var="product"
+								itemLabel="#{product.nameAndInventory}"
+								itemValue="#{product.id}" required="true"
+								requiredMessage="Please Select Product">
+								<p:ajax event="itemSelect" partialSubmit="true"></p:ajax>
+							</p:autoComplete>
+
+							<p:outputLabel value="Image :" />
+							<p:commandLink value="View" update=":imageDialog"
+								oncomplete="PF('imageDialog').show()">
+								<f:param name="id" value="#{saleBean.selectedProduct.id}" />
+							</p:commandLink>
+
+							<p:outputLabel value="Quantity :" for="quantity" />
+							<pe:inputNumber id="quantity"
+								value="#{saleBean.newSaleDetail.quantity}" required="true"
+								requiredMessage="Please Enter Quantity" decimalPlaces="0"
+								thousandSeparator="" />
+
+							<p:outputLabel value="Customized :" for="customized" />
+							<p:selectBooleanCheckbox id="customized"
+								value="#{saleBean.newSaleDetail.customised}" />
+
+							<p:outputLabel value="Remarks :" for="remarks" />
+							<p:inputTextarea id="remarks" maxlength="50"
+								value="#{saleBean.newSaleDetail.remarks}" />
+
+							<f:facet name="footer">
+								<p:commandButton value="Add Product"
+									update=":sale_form:sale_datatable, :sale_form:sale_messages"
+									oncomplete=" handleAddRequest(xhr, status, args, 'addProDlg','addProductForm');"
+									actionListener="#{saleBean.addSaleDetail}" />
+								<p:commandButton value="Add More Products"
+									update=":sale_form:sale_datatable, :sale_form:sale_messages"
+									oncomplete=" handleAddMoreRequest(xhr, status, args, 'addProDlg','addProductForm');"
+									actionListener="#{saleBean.addSaleDetail}" />
+								<p:commandButton type="reset" value="Reset"></p:commandButton>
+
+							</f:facet>
+						</p:panelGrid>
+					</h:form>
+				</p:dialog>
+
+				<p:dialog header="Create New Customer" widgetVar="newCustomerDialog"
+					resizable="false" id="newCustDlg" draggable="true" modal="true"
+					closeOnEscape="true">
+					<h:form id="newUserForm">
+						<p:growl id="messages" showDetail="true" life="3000" />
+						<p:panelGrid id="displayNewUser" columns="2" cellpadding="4"
+							styleClass="panelGrid">
+							<p:outputLabel value="Name :" for="newCustomerName" />
+							<p:inputText value="#{saleBean.newCustomer.name}" required="true"
+								id="newCustomerName" label="newCustomerName"
+								requiredMessage="Please Enter Customer Name" maxlength="30" />
+
+							<p:outputLabel value="Address :" for="newCustomerAddress" />
+							<p:inputText value="#{saleBean.newCustomer.address}"
+								id="newCustomerAddress" maxlength="50" />
+
+							<p:outputLabel value="Mobile :" for="newCustomerPhone" />
+							<pe:inputNumber value="#{saleBean.newCustomer.phone}"
+								required="true" id="newCustomerPhone" decimalPlaces="0"
+								thousandSeparator="" requiredMessage="Please Enter Mobile!"
+								maxlength="10" maxValue="9999999999" />
+							<f:facet name="footer">
+								<p:commandButton value="Submit" update=":newUserForm:messages, :sale_form:newSaleName, :sale_form:newSaleAddress, :sale_form:newSaleCustPhone"
+									oncomplete="handlePageSubmitRequest(xhr, status, args, 'newCustDlg','newUserForm');"
+									actionListener="#{saleBean.saveCustomer}" />
+								<p:commandButton type="reset" value="Reset"></p:commandButton>
+							</f:facet>
+						</p:panelGrid>
+					</h:form>
+				</p:dialog>
+
+				<p:dialog header="Image" width="300" widgetVar="imageDialog"
+					id="imageDialog">
+					<div id="image">
+						<p:graphicImage value="#{images.image}"
+							rendered="#{saleBean.selectedProduct.id != 0}">
+							<f:param name="productId" value="#{saleBean.selectedProduct.id}" />
+						</p:graphicImage>
+					</div>
+				</p:dialog>
+			</ui:define>
+
+		</ui:composition>
+
+	</h:body>
+
+</f:view>
+</html>
+

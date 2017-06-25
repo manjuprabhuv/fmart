@@ -1,0 +1,118 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:pe="http://primefaces.org/ui/extensions">
+
+<f:view contentType="text/html">
+	<h:head>
+		<script type="text/javascript">
+			function handlePageSubmitRequest(xhr, status, args, dialogName,
+					formName) {
+				dialog = jQuery('#' + dialogName);
+				if (args.validationFailed) {
+					dialog.effect("shake", {
+						times : 3
+					}, 100);
+				} else {
+					clearForm(formName);
+					PF('newExpensesTypeDialog').hide();
+					PF('expenseTypeDetailDialog').hide();
+				}
+			}
+			function clearForm(formName) {
+				jQuery('#' + formName).each(function() {
+					this.reset();
+				});
+			}
+		</script>
+
+	</h:head>
+
+	<h:body>
+		<ui:composition template="templates/template.xhtml">
+
+			<ui:define name="pagebody">
+				<h:form id="form">
+					<p:spacer height="25px"></p:spacer>
+					<p:growl id="messages" showDetail="true" life="3000" />
+					<p:commandButton id="saveBtn" value="Add Expense Type"
+						icon="ui-icon ui-icon-disk" style="margin:0"
+						oncomplete="PF('newExpensesTypeDialog').show()" />
+					<p:dataTable id="dataTable" var="expenseTypes"
+						value="#{expenseTypeBean.expenseTypes}"
+						paginator="true" rows="10" rowKey="#{expenseTypes.id}"
+						selection="#{expenseTypeBean.selectedExpenseTypes}">
+						<f:facet name="header">
+						</f:facet>
+						<p:column sortBy="#{expenseTypes.name}">
+							<f:facet name="header">
+								<h:outputText value="Name" />
+							</f:facet>
+							<p:commandLink value="#{expenseTypes.name}"
+								update=":expenseTypeDetailForm:display"
+								oncomplete="PF('expenseTypeDetailDialog').show()">
+								<f:setPropertyActionListener value="#{expenseTypes}"
+									target="#{expenseTypeBean.selectedExpenseType}" />
+							</p:commandLink>
+						</p:column>
+					</p:dataTable>
+					<p:blockUI block="dataTable" trigger="dataTable">
+						<br />
+						<p:graphicImage name="/images/ajaxloadingbar.gif" />
+					</p:blockUI>
+				</h:form>
+				<p:dialog header="Create New Expense Type"
+					widgetVar="newExpensesTypeDialog" resizable="false" id="newETDlg"
+					draggable="true" modal="true" closeOnEscape="true">
+					<h:form id="newUserForm">
+						<p:panelGrid id="displayNewUser" columns="2" cellpadding="4"
+							style="margin:0 auto" styleClass="panelGrid">
+							<p:outputLabel value="Name :" for="newExpenseTypeName" />
+							<p:inputText value="#{expenseTypeBean.newExpenseType.name}"
+								required="true" id="newExpenseTypeName"
+								label="newExpenseTypeName" maxlength="30"
+								requiredMessage="Please Enter Expense Type Name" />
+
+							<f:facet name="footer">
+								<p:commandButton value="Submit"
+									update=":form:dataTable, :form:messages"
+									oncomplete=" handlePageSubmitRequest(xhr, status, args, 'newExpenseTypeDlg','newUserForm');"
+									actionListener="#{expenseTypeBean.saveExpenseType}" />
+								<p:commandButton type="reset" value="Reset"></p:commandButton>
+							</f:facet>
+						</p:panelGrid>
+					</h:form>
+				</p:dialog>
+
+				<p:dialog header="Expense Type Detail"
+					widgetVar="expenseTypeDetailDialog" resizable="false" id="pgDlg"
+					draggable="true" modal="true" closeOnEscape="true">
+					<h:form id="expenseTypeDetailForm">
+						<p:panelGrid id="display" columns="2" cellpadding="4"
+							styleClass="panelGrid">
+							<p:outputLabel value="Expense Type Name :" for="expenseTypeName" />
+							<p:inputText value="#{expenseTypeBean.selectedExpenseType.name}"
+								required="true" id="expenseTypeName" maxlength="30"
+								requiredMessage="Please Enter Expense Type Name" />
+
+							<f:facet name="footer">
+								<p:commandButton value="Update"
+									update=":form:dataTable, :form:messages"
+									oncomplete="handlePageSubmitRequest(xhr, status, args, 'expenseTypeDetailDialog','expenseTypeDetailForm'); "
+									actionListener="#{expenseTypeBean.updateExpenseType}" />
+							</f:facet>
+						</p:panelGrid>
+					</h:form>
+				</p:dialog>
+
+			</ui:define>
+
+		</ui:composition>
+	</h:body>
+
+</f:view>
+</html>
+

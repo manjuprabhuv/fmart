@@ -1,0 +1,275 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:pe="http://primefaces.org/ui/extensions">
+
+<f:view contentType="text/html">
+	<h:head>
+		<script type="text/javascript">
+			function handlePageSubmitRequest(xhr, status, args, dialogName,
+					formName) {
+				dialog = jQuery('#' + dialogName);
+				if (args.validationFailed) {
+					dialog.effect("shake", {
+						times : 3
+					}, 100);
+				} else {
+					clearForm(formName);
+					PF('newReceiptDialog').hide();
+					PF('receiptDetailDialog').hide();
+				}
+			}
+			function clearForm(formName) {
+				jQuery('#' + formName).each(function() {
+					this.reset();
+				});
+			}
+		</script>
+
+	</h:head>
+
+	<h:body>
+		<ui:composition template="templates/template.xhtml">
+
+			<ui:define name="pagebody">
+				<h:form id="form">
+					<p:spacer height="25px"></p:spacer>
+					<p:growl id="messages" showDetail="true" life="3000" />
+					<p:commandButton id="saveBtn" value="Create Receipt"
+						icon="ui-icon ui-icon-disk" style="margin:0"
+						oncomplete="PF('newReceiptDialog').show()" />
+					<p:dataTable id="dataTable" var="receipt"
+						value="#{receiptBean.receipts}" paginator="true" rows="10"
+						rowKey="#{receipt.id}" lazy="true"
+						paginatorTemplate="{RowsPerPageDropdown} {FirstPageLink} {PreviousPageLink} {CurrentPageReport} {NextPageLink} {LastPageLink}"
+						selection="#{receiptBean.selectedExpenses}">
+						<f:facet name="header">
+						</f:facet>
+						<p:column sortBy="#{receipt.id}">
+							<f:facet name="header">
+								<h:outputText value="Receipt Id" />
+							</f:facet>
+							<p:commandLink value="#{receipt.id}" process="@this"
+								update=":receiptDetailForm:display"
+								disabled="#{receipt.particulars.contains('CANCEL')}"
+								oncomplete="PF('receiptDetailDialog').show()">
+								<f:setPropertyActionListener value="#{receipt}"
+									target="#{receiptBean.selectedReceipt}" />
+							</p:commandLink>
+						</p:column>
+						
+						<p:column sortBy="#{receipt.sale.id}">
+							<f:facet name="header">
+								<h:outputText value="Sale Id" />
+							</f:facet>
+							<h:outputText value="#{receipt.sale.id}" />
+						</p:column>
+
+						<p:column sortBy="#{receipt.created}">
+							<f:facet name="header">
+								<h:outputText value="Date" />
+							</f:facet>
+							<h:outputText value="#{receipt.created}">
+								<f:convertDateTime pattern="dd/MM/yyyy" type="date" />
+							</h:outputText>
+						</p:column>
+
+						<p:column sortBy="#{receipt.sale.customer.name}">
+							<f:facet name="header">
+								<h:outputText value="Customer Name" />
+							</f:facet>
+							<h:outputText value="#{receipt.sale.customer.name}" />
+						</p:column>
+
+						<p:column sortBy="#{receipt.sale.customer.address}">
+							<f:facet name="header">
+								<h:outputText value="Customer Address" />
+							</f:facet>
+							<h:outputText value="#{receipt.sale.customer.address}" />
+						</p:column>
+
+						<p:column sortBy="#{receipt.amount}">
+							<f:facet name="header">
+								<h:outputText value="Amount" />
+							</f:facet>
+							<h:outputText value="#{receipt.amount}" />
+						</p:column>
+
+						<p:column sortBy="#{receipt.particulars}">
+							<f:facet name="header">
+								<h:outputText value="Particulars" />
+							</f:facet>
+							<h:outputText value="#{receipt.particulars}" />
+						</p:column>
+
+						<p:column sortBy="#{receipt.employeeByCreatedBy.name}" rendered="#{!userSession.getSession().isAuthorized('Employee')}">
+							<f:facet name="header">
+								<h:outputText value="Created By" />
+							</f:facet>
+							<h:outputText value="#{receipt.employeeByCreatedBy.name}" />
+						</p:column>
+					</p:dataTable>
+					<p:blockUI block="dataTable" trigger="dataTable">
+						<br />
+						<p:graphicImage name="/images/ajaxloadingbar.gif" />
+					</p:blockUI>
+				</h:form>
+
+				<p:dialog header="Create New Receipt" widgetVar="newReceiptDialog"
+					resizable="false" id="newReceiptDlg" draggable="true" modal="true"
+					closeOnEscape="true" width="400">
+
+					<p:ajax event="close" immediate="true" update="newReceiptDlg"
+						resetValues="true" />
+
+					<h:form id="newReceiptForm">
+						<p:panelGrid id="displayNewReceipt" columns="2" cellpadding="4"
+							style="margin:0 auto" styleClass="panelGrid">
+
+							<p:outputLabel for="newReceiptDate" value="Date:" />
+							<p:calendar id="newReceiptDate"
+								value="#{receiptBean.newReceipt.created}" pattern="dd/MM/yyyy"
+								showOn="button" maxdate="01/01/2030" required="true"
+								requiredMessage="Please Enter the Date" disabled="true">
+								<f:convertDateTime pattern="dd/MM/yyyy" type="date" />
+							</p:calendar>
+
+							<p:outputLabel value="Company" for="companyName" />
+							<p:selectOneMenu id="companyName" disabled="true"
+								value="#{receiptBean.selectedCompany.id}" required="true">
+								<f:converter converterId="com.fmart.ui.utils.CompanyConverter" />
+								<f:selectItems value="#{constantsBean.getCompanies()}"
+									var="company" itemValue="#{company.id}"
+									itemLabel="#{company.name}" />
+							</p:selectOneMenu>
+
+							<p:outputLabel value="Sale Id" for="customerNewReceipt" />
+							<p:autoComplete id="customerNewReceipt" dropdown="false"
+								value="#{receiptBean.selectedSale}"
+								completeMethod="#{receiptBean.populateSaleIds}"
+								converter="genericConverter" var="sale" itemLabel="#{sale.id}"
+								itemValue="#{sale.id}" required="true"
+								requiredMessage="Select Sale Id">
+								<p:ajax event="itemSelect"
+									listener="#{receiptBean.saleIdChangeListener()}"
+									update=":newReceiptForm:newReceiptPendingAmt, :newReceiptForm:newReceiptCustomerName, :newReceiptForm:newReceiptCustomerAddress"></p:ajax>
+							</p:autoComplete>
+
+							<p:outputLabel value="Name" />
+							<p:outputLabel value="#{receiptBean.selectedSale.customer.name}"
+								id="newReceiptCustomerName" />
+
+							<p:outputLabel value="Address" />
+							<p:outputLabel
+								value="#{receiptBean.selectedSale.customer.address}"
+								id="newReceiptCustomerAddress" />
+
+							<p:outputLabel value="Pending Amount" />
+							<p:outputLabel value="#{receiptBean.pendingAmount}"
+								id="newReceiptPendingAmt" />
+
+							<p:outputLabel value="Amount" for="newReceiptAmt" />
+							<pe:inputNumber value="#{receiptBean.newReceipt.amount}"
+								id="newReceiptAmt" label="newReceiptAmt" thousandSeparator=""
+								decimalPlaces="0" />
+
+							<p:outputLabel value="Particulars" />
+							<p:inputText value="#{receiptBean.newReceipt.particulars}"
+								maxlength="25" />
+
+							<f:facet name="footer">
+								<p:commandButton value="Submit"
+									update=":form:dataTable, :form:messages"
+									oncomplete=" handlePageSubmitRequest(xhr, status, args, 'newReceiptDialog','newReceiptForm');"
+									actionListener="#{receiptBean.saveReceipt}" />
+								<p:commandButton type="reset" value="Reset"></p:commandButton>
+							</f:facet>
+						</p:panelGrid>
+					</h:form>
+				</p:dialog>
+
+				<p:dialog header="Receipt Type Detail"
+					widgetVar="receiptDetailDialog" resizable="false" id="pgDlg"
+					draggable="true" modal="true" closeOnEscape="true" width="400">
+
+					<p:ajax event="close" immediate="true" update="pgDlg"
+						resetValues="true" />
+
+					<h:form id="receiptDetailForm">
+						<p:panelGrid id="display" columns="2" cellpadding="4"
+							styleClass="panelGrid">
+
+							<p:outputLabel for="detailReceiptDate" value="Date:" />
+							<p:calendar id="detailReceiptDate"
+								value="#{receiptBean.selectedReceipt.created}" pattern="dd/MM/yyyy"
+								showOn="button" maxdate="01/01/2030" required="true"
+								requiredMessage="Please Enter the Date">
+								<f:convertDateTime pattern="dd/MM/yyyy" type="date" />
+							</p:calendar>
+
+							<p:outputLabel value="Company" for="detailCompanyName" />
+							<p:selectOneMenu id="detailCompanyName" disabled="true"
+								value="#{receiptBean.selectedReceipt.company.id}"
+								required="true">
+								<f:converter converterId="com.fmart.ui.utils.CompanyConverter" />
+								<f:selectItems value="#{constantsBean.getCompanies()}"
+									var="company" itemValue="#{company.id}"
+									itemLabel="#{company.name}" />
+							</p:selectOneMenu>
+
+							<p:outputLabel value="Sale Id *" for="customerReceiptDetail" />
+							<p:autoComplete id="customerReceiptDetail" dropdown="false"
+								value="#{receiptBean.selectedSale}" 
+								completeMethod="#{receiptBean.populateSaleIds}"
+								converter="genericConverter" var="sale" itemLabel="#{sale.id}"
+								itemValue="#{sale.id}" requiredMessage="Select Sale Id">
+								<p:ajax event="itemSelect"
+									listener="#{receiptBean.saleIdChangeListener()}"
+									update=":receiptDetailForm:receiptDetailPendingAmt, :receiptDetailForm:receiptDetailCustomerName, :receiptDetailForm:receiptDetailCustomerAddress"></p:ajax>
+							</p:autoComplete>
+
+							<p:outputLabel value="Name" />
+							<p:outputLabel
+								value="#{receiptBean.selectedSale.customer.name}"
+								id="receiptDetailCustomerName" />
+
+							<p:outputLabel value="Address" />
+							<p:outputLabel
+								value="#{receiptBean.selectedSale.customer.address}"
+								id="receiptDetailCustomerAddress" />
+
+							<p:outputLabel value="Pending Amount" />
+							<p:outputLabel value="#{receiptBean.pendingAmount}"
+								id="receiptDetailPendingAmt" />
+
+							<p:outputLabel value="Amount" for="detailReceiptAmt" />
+							<pe:inputNumber value="#{receiptBean.selectedReceipt.amount}"
+								id="detailReceiptAmt" label="detailReceiptAmt"
+								thousandSeparator="" decimalPlaces="0" />
+
+							<p:outputLabel value="Particulars" />
+							<p:inputText value="#{receiptBean.selectedReceipt.particulars}"
+								disabled="#{receiptBean.selectedReceipt.particulars.contains('ADVANCE')}"
+								maxlength="25" />
+
+							<f:facet name="footer">
+								<p:commandButton value="Update"
+									update=":form:dataTable, :form:messages"
+									oncomplete="handlePageSubmitRequest(xhr, status, args, 'receiptDetailDialog','receiptDetailForm'); "
+									actionListener="#{receiptBean.updateReceipt}" />
+							</f:facet>
+						</p:panelGrid>
+					</h:form>
+				</p:dialog>
+
+			</ui:define>
+
+		</ui:composition>
+	</h:body>
+
+</f:view>
+</html>
+

@@ -1,0 +1,222 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:pe="http://primefaces.org/ui/extensions">
+
+<f:view contentType="text/html">
+	<h:head>
+
+		<script type="text/javascript">
+			function handlePageSubmitRequest(xhr, status, args, dialogName,
+					formName) {
+				dialog = jQuery('#' + dialogName);
+				//alert(dialogName);
+				if (args.validationFailed) {
+					dialog.effect("shake", {
+						times : 3
+					}, 100);
+				} else {
+					clearForm(formName);
+					PF('newProductDialog').hide();
+					PF('ProductDetailDialog').hide();
+				}
+				window.location.reload()
+			}
+			function clearForm(formName) {
+				jQuery('#' + formName).each(function() {
+					this.reset();
+				});
+			}
+		</script>
+
+	</h:head>
+
+	<h:body>
+		<ui:composition template="templates/template.xhtml">
+
+			<ui:define name="pagebody">
+				<h:form id="form">
+                    <p:spacer height="25px"></p:spacer>
+					<p:growl id="messages" showDetail="true" life="3000"/>
+					<p:commandButton id="saveBtn" value="Add Product"
+						icon="ui-icon ui-icon-disk" style="margin:0"
+						oncomplete="PF('newProductDialog').show()" />
+					<p:dataTable id="dataTable" var="products"
+						value="#{productBean.products}" paginator="true"
+						rows="10" rowKey="#{products.id}" lazy="true"
+						paginatorTemplate="{RowsPerPageDropdown} {FirstPageLink} {PreviousPageLink} {CurrentPageReport} {NextPageLink} {LastPageLink}"
+						selection="#{productBean.selectedProducts}">
+						<f:facet name="header">
+						</f:facet>
+						<p:column sortBy="#{products.name}">
+							<f:facet name="header">
+								<h:outputText value="Name" />
+							</f:facet>
+							<p:commandLink value="#{products.name}"
+								update=":ProductDetailForm:displayEditUser"
+								oncomplete="PF('ProductDetailDialog').show()">
+								<f:setPropertyActionListener value="#{products}"
+									target="#{productBean.selectedProduct}" />
+							</p:commandLink>
+						</p:column>
+
+						
+						<p:column>
+							<f:facet name="header">
+								<h:outputText value="Image" />
+							</f:facet>
+							<p:commandLink value="View" update=":imageDialog"								
+								oncomplete="PF('imageDialog').show()">
+								<f:param name="id" value="#{products.id}" />
+								<f:setPropertyActionListener value="#{products}"
+									target="#{productBean.selectedProduct}" />
+							</p:commandLink>
+						</p:column>
+
+						<p:column sortBy="#{products.unitPrice}" rendered="#{userSession.getSession().isRole('Admin')}">
+							<f:facet name="header">
+								<h:outputText value="Unit Price" />
+							</f:facet>
+							<h:outputText value="#{products.unitPrice}" />
+						</p:column>
+
+						<p:column sortBy="#{products.productGrp.name}">
+							<f:facet name="header">
+								<h:outputText value="Product Group" />
+							</f:facet>
+							<h:outputText value="#{products.productGrp.name}" />
+						</p:column>
+					</p:dataTable>
+					<p:blockUI block="dataTable" trigger="dataTable">
+						<br />
+						<p:graphicImage name="/images/ajaxloadingbar.gif" />
+					</p:blockUI>
+				</h:form>
+				<p:dialog header="Create New Product" widgetVar="newProductDialog"
+					resizable="false" id="newpgDlg" draggable="true" modal="true"
+					closeOnEscape="true">
+					<h:form id="newProdForm" enctype="multipart/form-data">
+						<p:panelGrid id="displayNewUser" columns="2" cellpadding="4"
+							style="margin:0 auto" styleClass="panelGrid">
+							<p:outputLabel value="Name :" for="newProductName" />
+							<p:inputText value="#{productBean.newProduct.name}"
+								required="true" id="newProductName" label="newProductName"
+								maxlength="40" requiredMessage="Please Enter Product Name" />
+							<p:outputLabel value="Unit Price :" for="newProductUnitPrice" rendered="#{userSession.getSession().isRole('Admin')}"/>
+							<pe:inputNumber value="#{productBean.newProduct.unitPrice}"
+								required="true" id="newProductUnitPrice"
+								label="newProductUnitPrice" decimalPlaces="0"
+								thousandSeparator="" rendered="#{userSession.getSession().isRole('Admin')}"
+								requiredMessage="Please Enter Product Unit Price" />
+
+							<p:outputLabel value="Product Group :" for="newproductGrpP" />
+							<p:selectOneMenu id="newproductGrpP"
+								value="#{productBean.newProduct.productGrp.id}" required="true"
+								requiredMessage="Please Product Group">
+								<!-- <f:converter converterId="productGrpConverter" /> -->
+								<f:selectItem itemLabel="Select One" itemValue="" selectitems="" />
+								<f:selectItems value="#{constantsBean.getProductGroup()}"
+									var="productGrp" itemValue="#{productGrp.id}"
+									itemLabel="#{productGrp.name}" />
+							</p:selectOneMenu>
+
+							<p:outputLabel value="Image  :" for="uploadfile" />
+							<p:fileUpload
+								fileUploadListener="#{productBean.handleFileUpload}"
+								mode="advanced" multiple="true" id="uploadfile"
+								styleClass="importItems" update=":form:messages"
+								style="margin: 10px 0" sizeLimit="524288" required="true"
+								requiredMessage="Please upload the Image!"
+								allowTypes="/(\.|\/)(jpe?g)$/"
+								invalidSizeMessage="The maximum file size allowed is 500Kb !"
+								invalidFileMessage="You are allowed to upload only images !" />
+
+
+
+							<p:messages id="uploadmessage" showDetail="true"
+								autoUpdate="true" closable="true" colspan="2" />
+
+
+							<f:facet name="footer">
+								<p:commandButton value="Submit"
+									update=":form:dataTable,:form:messages"
+									oncomplete="handlePageSubmitRequest(xhr, status, args, 'newProductDialog','newProdForm');"
+									actionListener="#{productBean.saveProduct}" />
+								<p:commandButton type="reset" value="Reset" />
+							</f:facet>
+						</p:panelGrid>
+					</h:form>
+				</p:dialog>
+
+				<p:dialog header="Product Detail" widgetVar="ProductDetailDialog"
+					resizable="false" id="pgDlg" draggable="true" modal="true"
+					closeOnEscape="true">
+					<h:form id="ProductDetailForm" enctype="multipart/form-data">
+						<p:panelGrid id="displayEditUser" columns="2" cellpadding="4"
+							style="margin:0 auto" styleClass="panelGrid">
+							<p:outputLabel value="Name :" for="editProductName" />
+							<p:inputText value="#{productBean.selectedProduct.name}"
+								required="true" id="editProductName" label="editProductName"
+								maxlength="40" requiredMessage="Please Enter Product Name" />
+							<p:outputLabel value="Unit Price :" for="editProductUnitPrice" />
+							<pe:inputNumber value="#{productBean.selectedProduct.unitPrice}"
+								required="true" id="editProductUnitPrice"
+								label="editProductUnitPrice" decimalPlaces="0" thousandSeparator=""
+								requiredMessage="Please Enter Product Unit Price" />
+
+							<p:outputLabel value="Product Group :" for="editproductGrpP" />
+							<p:selectOneMenu id="editproductGrpP"
+								value="#{productBean.selectedProduct.productGrp.id}"
+								required="true" requiredMessage="Please Product Group">
+								<!-- <f:converter converterId="productGrpConverter" /> -->
+								<f:selectItem itemLabel="Select One" itemValue="" selectitems="" />
+								<f:selectItems value="#{constantsBean.getProductGroup()}"
+									var="productGrp" itemValue="#{productGrp.id}"
+									itemLabel="#{productGrp.name}" />
+							</p:selectOneMenu>
+
+							<p:outputLabel value="Image  :" for="uploadfile" />
+							<p:fileUpload
+								fileUploadListener="#{productBean.handleFileUpload}"
+								mode="advanced" multiple="true" id="uploadfile"
+								styleClass="importItems" update=":form:messages"
+								style="margin: 10px 0" sizeLimit="524288" required="true"
+								allowTypes="/(\.|\/)(jpe?g)$/"
+								invalidSizeMessage="The maximum file size allowed is 500Kb !"
+								invalidFileMessage="You are allowed to upload only jpg images !" />
+							<p:messages id="uploadmessage" showDetail="true"
+								autoUpdate="true" closable="true" colspan="2" />
+
+
+							<f:facet name="footer">
+								<p:commandButton value="Submit"
+									update=":form:dataTable,:form:messages"
+									oncomplete="handlePageSubmitRequest(xhr, status, args, 'ProductDetailDialog','ProductDetailForm');"
+									actionListener="#{productBean.updateProduct}" />
+								<p:commandButton type="reset" value="Reset" />
+							</f:facet>
+						</p:panelGrid>
+					</h:form>
+				</p:dialog>
+				
+				<p:dialog header="Image" width="300"
+					widgetVar="imageDialog" id="imageDialog">
+					<h:form id="newImgForm">
+					
+					<div id="image">
+						<h:graphicImage value="/images/#{productBean.selectedProduct.id}" />
+					</div>
+					</h:form>
+				</p:dialog>
+
+			</ui:define>
+
+		</ui:composition>
+	</h:body>
+
+</f:view>
+</html>
+

@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE hibernate-configuration PUBLIC "-//Hibernate/Hibernate Configuration DTD 3.0//EN"
+                                         "http://hibernate.sourceforge.net/hibernate-configuration-3.0.dtd">
+<hibernate-configuration>
+	<session-factory>
+		<property name="hibernate.dialect">org.hibernate.dialect.PostgreSQLDialect</property>
+		<property name="hibernate.connection.driver_class">org.postgresql.Driver</property>
+		<property name="hibernate.show_sql">true</property>
+		<property name="hibernate.current_session_context_class">managed</property>
+
+		<property name="hibernate.query.factory_class">org.hibernate.hql.internal.ast.ASTQueryTranslatorFactory</property>
+		<property name="hibernate.c3p0.min_size">2</property>
+		<property name="hibernate.c3p0.max_size">10</property>
+		<property name="hibernate.c3p0.timeout">300</property>
+		<property name="hibernate.c3p0.max_statements">50</property>
+		<property name="hibernate.c3p0.idle_test_period">3000</property>
+		<property name="hibernate.temp.use_jdbc_metadata_defaults">false</property>
+		<mapping class="com.fmart.hibernate.pojos.Company" />
+		<mapping class="com.fmart.hibernate.pojos.Dealer" />
+		<mapping class="com.fmart.hibernate.pojos.Payment" />
+		<mapping class="com.fmart.hibernate.pojos.Employee" />
+		<mapping class="com.fmart.hibernate.pojos.Roles" />
+		<mapping class="com.fmart.hibernate.pojos.Purchase" />
+		<mapping class="com.fmart.hibernate.pojos.ProductGrp" />
+		<mapping class="com.fmart.hibernate.pojos.Product" />
+		<mapping class="com.fmart.hibernate.pojos.Purchase" />
+		<mapping class="com.fmart.hibernate.pojos.PurchaseDetail" />
+		<mapping class="com.fmart.hibernate.pojos.Receipt" />
+		<mapping class="com.fmart.hibernate.pojos.Inventory" />
+		<mapping class="com.fmart.hibernate.pojos.Sale" />
+		<mapping class="com.fmart.hibernate.pojos.SaleDetail" />
+		<mapping class="com.fmart.hibernate.pojos.Report" />
+		<mapping class="com.fmart.hibernate.pojos.InventoryId" />
+		<mapping class="com.fmart.hibernate.pojos.ExpenseType" />
+		<mapping class="com.fmart.hibernate.pojos.Expense" />
+		<mapping class="com.fmart.hibernate.pojos.EmpReport" />
+		<mapping class="com.fmart.hibernate.pojos.EmpRole" />
+		<mapping class="com.fmart.hibernate.pojos.Notifications" />
+		<mapping class="com.fmart.hibernate.pojos.DbBackupJob" />
+		<mapping class="com.fmart.hibernate.pojos.Customer" />
+		<mapping class="com.fmart.hibernate.pojos.Godown" />
+		<mapping class="com.fmart.hibernate.pojos.GodownInventory" />
+	</session-factory>
+</hibernate-configuration>

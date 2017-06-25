@@ -1,0 +1,201 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:pe="http://primefaces.org/ui/extensions">
+
+<f:view contentType="text/html">
+	<h:head>
+		<style type="text/css">
+</style>
+		<script type="text/javascript">
+		function handleAddRequest(xhr, status, args, dialogName, formName) {
+			dialog = jQuery('#' + dialogName);
+			if (args.validationFailed) {
+				dialog.effect("shake", {
+					times : 3
+				}, 100);
+			} else {
+				clearForm(formName);
+				PF('addProDlg').hide();
+			}
+		}
+		function handleAddMoreRequest(xhr, status, args, dialogName,
+				formName) {
+			dialog = jQuery('#' + dialogName);
+			if (args.validationFailed) {
+				dialog.effect("shake", {
+					times : 3
+				}, 100);
+			} else {
+				clearForm(formName);
+			}
+		}
+			function handlePageSubmitRequest(xhr, status, args, dialogName,
+					formName) {
+				dialog = jQuery('#' + dialogName);
+				if (args.validationFailed) {
+					dialog.effect("shake", {
+						times : 3
+					}, 100);
+				} else {
+					clearForm(formName);
+					PF('newGodownDialog').hide();
+					PF('godownDetailDialog').hide();
+				}
+			}
+			function clearForm(formName) {
+				jQuery('#' + formName).each(function() {
+					this.reset();
+				});
+			}
+		</script>
+
+	</h:head>
+
+	<h:body>
+		<ui:composition template="templates/template.xhtml">
+
+			<ui:define name="pagebody">
+				<h:form id="form">
+					<p:spacer height="25px"></p:spacer>
+					<p:growl id="messages" showDetail="true" life="3000" />
+					<p:commandButton id="saveBtn" value="Add Godown"
+						icon="ui-icon ui-icon-disk" style="margin:0"
+						oncomplete="PF('newGodownDialog').show()" />
+					<p:dataTable id="dataTable" var="godowns"
+						value="#{godownBean.godowns}" paginator="true" rows="10"
+						rowKey="#{godowns.id}" selection="#{godownBean.selectedGodowns}">
+						<f:facet name="header">
+						</f:facet>
+						<p:column sortBy="#{godowns.name}">
+							<f:facet name="header">
+								<h:outputText value="Name" />
+							</f:facet>
+							<p:commandLink value="#{godowns.name}"
+								update=":godownDetailForm:display"
+								oncomplete="PF('godownDetailDialog').show()">
+								<f:setPropertyActionListener value="#{godowns}"
+									target="#{godownBean.selectedGodown}" />
+							</p:commandLink>
+						</p:column>
+						<p:column sortBy="#{godowns.address}">
+							<f:facet name="header">
+								<h:outputText value="Address" />
+							</f:facet>
+							<h:outputText value="#{godowns.address}" />
+						</p:column>
+						<p:column sortBy="#{godowns.company}">
+							<f:facet name="header">
+								<h:outputText value="Company" />
+							</f:facet>
+							<h:outputText value="#{godowns.company.name}" />
+						</p:column>
+						
+						<p:column>
+							<f:facet name="header">
+								<h:outputText value="Inventory" />
+							</f:facet>
+							<p:commandLink
+								value="View Inventory" action="#{godownBean.printInventory(godowns.id)}"						
+								>
+								
+							</p:commandLink>
+						
+						</p:column>
+						
+					</p:dataTable>
+					<p:blockUI block="dataTable" trigger="dataTable">
+						<br />
+						<p:graphicImage name="/images/ajaxloadingbar.gif" />
+					</p:blockUI>
+				</h:form>
+			
+				<p:dialog header="Create New Godown" widgetVar="newGodownDialog"
+					resizable="false" id="newpgDlg" draggable="true" modal="true"
+					closeOnEscape="true">
+					<h:form id="newGodownForm">
+						<p:panelGrid id="displayNewUser" columns="2" cellpadding="4"
+							style="margin:0 auto" styleClass="panelGrid">
+							<p:outputLabel value="Name :" for="newGodownName" />
+							<p:inputText value="#{godownBean.newGodown.name}" required="true"
+								id="newGodownName" label="newGodownName" maxlength="30"
+								requiredMessage="Please Enter Godown Name" />
+
+							<p:outputLabel value="Address :" for="newGodownAddress" />
+							<p:inputText value="#{godownBean.newGodown.address}"
+								required="true" id="newGodownAddress" label="newGodownAddress"
+								maxlength="30" requiredMessage="Please Enter Godown Address" />
+
+							<p:outputLabel value="Company :" for="newGodownCompanyName" />
+							<p:selectOneMenu id="newGodownCompanyName"
+								value="#{godownBean.newGodown.company.id}" required="true"
+								requiredMessage="Please Select Company">
+								<f:converter converterId="com.fmart.ui.utils.CompanyConverter" />
+								<f:selectItem itemLabel="Select One" itemValue="" selectitems="" />
+								<f:selectItems value="#{constantsBean.getCompanies()}"
+									var="company" itemValue="#{company.id}"
+									itemLabel="#{company.name}" />
+							</p:selectOneMenu>
+
+							<f:facet name="footer">
+								<p:commandButton value="Submit"
+									update=":form:dataTable, :form:messages"
+									oncomplete=" handlePageSubmitRequest(xhr, status, args, 'newGodownDlg','newGodownForm');"
+									actionListener="#{godownBean.saveGodown}" />
+								<p:commandButton type="reset" value="Reset"></p:commandButton>
+							</f:facet>
+						</p:panelGrid>
+					</h:form>
+				</p:dialog>
+
+				<p:dialog header="Godown Detail" widgetVar="godownDetailDialog"
+					resizable="false" id="pgDlg" draggable="true" modal="true"
+					closeOnEscape="true">
+					<h:form id="godownDetailForm">
+						<p:panelGrid id="display" columns="2" cellpadding="4"
+							styleClass="panelGrid">
+							<p:outputLabel value="Godown Name :" for="godownName" />
+							<p:inputText value="#{godownBean.selectedGodown.name}"
+								required="true" id="godownName" maxlength="30"
+								requiredMessage="Please Enter Godown Name" />
+							<p:outputLabel value="Godown Address :" for="godownAddress" />
+							<p:inputText value="#{godownBean.selectedGodown.address}"
+								required="true" id="godownAddress" label="newGodownAddress"
+								maxlength="30" requiredMessage="Please Enter Godown Address" />
+
+							<p:outputLabel value="Company :" for="godownCompanyName" />
+							<p:selectOneMenu id="godownCompanyName"
+								value="#{godownBean.selectedGodown.company.id}" required="true"
+								requiredMessage="Please Select Company">
+								<f:converter converterId="com.fmart.ui.utils.CompanyConverter" />
+								<f:selectItem itemLabel="Select One" itemValue="" selectitems="" />
+								<f:selectItems value="#{constantsBean.getCompanies()}"
+									var="company" itemValue="#{company.id}"
+									itemLabel="#{company.name}" />
+							</p:selectOneMenu>
+
+
+
+							<f:facet name="footer">
+								<p:commandButton value="Update"
+									update=":form:dataTable, :form:messages"
+									oncomplete="handlePageSubmitRequest(xhr, status, args, 'GodownDlg','godownDetailForm'); "
+									actionListener="#{godownBean.updateGodown}" />
+							</f:facet>
+						</p:panelGrid>
+					</h:form>
+				</p:dialog>
+				
+				
+
+			</ui:define>
+
+		</ui:composition>
+	</h:body>
+
+</f:view>
+</html>
+

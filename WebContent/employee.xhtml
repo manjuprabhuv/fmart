@@ -1,0 +1,373 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:pe="http://primefaces.org/ui/extensions"
+	xmlns:fn="http://java.sun.com/jsp/jstl/functions"
+	xmlns:c="http://java.sun.com/jstl/core">
+
+<f:view contentType="text/html">
+	<h:head>
+
+		<script type="text/javascript">
+			function handlePageSubmitRequest(xhr, status, args, dialogName,
+					formName) {
+				dialog = jQuery('#' + dialogName);
+				if (args.validationFailed) {
+					dialog.effect("shake", {
+						times : 3
+					}, 100);
+				} else {
+					clearForm(formName);
+					PF('newEmployeeDialog').hide();
+					PF('editEmployeeDialog').hide();
+				}
+			}
+			function clearForm(formName) {
+				jQuery('#' + formName).each(function() {
+					this.reset();
+				});
+			}
+		</script>
+
+	</h:head>
+
+	<h:body>
+		<ui:composition template="templates/template.xhtml">
+
+			<ui:define name="pagebody">
+
+				<h:form id="form">
+					<p:spacer height="25px"></p:spacer>
+					<p:growl id="messages" showDetail="true" life="3000" />
+					<p:commandButton id="saveBtn" value="Create Employee"
+						icon="ui-icon ui-icon-disk" style="margin:0"
+						oncomplete="PF('newEmployeeDialog').show()" />
+
+					<p:dataTable id="dataTable" var="employees"
+						value="#{employeeBean.employees}" paginator="true" rows="10"
+						rowKey="#{employees.id}"
+						selection="#{employeeBean.selectedEmployees}">
+						<f:facet name="header">
+						</f:facet>
+						<p:column sortBy="#{employees.name}">
+							<f:facet name="header">
+								<h:outputText value="Name" />
+							</f:facet>
+							<p:commandLink value="#{employees.name}"
+								update=":employeeDetailForm:editUser"
+								disabled="#{employees.admin}"
+								oncomplete="PF('editEmployeeDialog').show()">
+								<f:param name="id" value="#{employees.id}" />
+								<f:setPropertyActionListener value="#{employees}"
+									target="#{employeeBean.selectedEmployee}" />
+							</p:commandLink>
+							<!-- <h:outputText value="#{employees.name}" /> -->
+						</p:column>
+						<p:column sortBy="#{employees.username}">
+							<f:facet name="header">
+								<h:outputText value="Username" />
+							</f:facet>
+							<h:outputText value="#{employees.username}" />
+						</p:column>
+						<p:column sortBy="#{employees.active}">
+							<f:facet name="header">
+								<h:outputText value="Active" />
+							</f:facet>
+							<h:outputText value="#{employees.active}" />
+						</p:column>
+						<p:column sortBy="#{employees.address}">
+							<f:facet name="header">
+								<h:outputText value="Address" />
+							</f:facet>
+							<h:outputText value="#{employees.address}" />
+						</p:column>
+
+						<p:column sortBy="#{employees.city}">
+							<f:facet name="header">
+								<h:outputText value="City" />
+							</f:facet>
+							<h:outputText value="#{employees.city}" />
+						</p:column>
+
+						<p:column sortBy="#{employees.state}">
+							<f:facet name="header">
+								<h:outputText value="State" />
+							</f:facet>
+							<h:outputText value="#{employees.state}" />
+						</p:column>
+						<p:column sortBy="#{employees.email}">
+							<f:facet name="header">
+								<h:outputText value="email" />
+							</f:facet>
+							<h:outputText value="#{employees.email}" />
+						</p:column>
+						<p:column sortBy="#{employees.mobile}">
+							<f:facet name="header">
+								<h:outputText value="mobile" />
+							</f:facet>
+							<h:outputText value="#{employees.mobile}" />
+						</p:column>
+						<p:column sortBy="#{employees.designation}">
+							<f:facet name="header">
+								<h:outputText value="designation" />
+							</f:facet>
+							<h:outputText value="#{employees.designation}" />
+						</p:column>
+
+						<p:column sortBy="#{employees.company.name}">
+							<f:facet name="header">
+								<h:outputText value="Company" />
+							</f:facet>
+							<h:outputText value="#{employees.company.name}" />
+						</p:column>
+						<p:column sortBy="#{employees.salePercent}">
+							<f:facet name="header">
+								<h:outputText value="Sales Percentage" />
+							</f:facet>
+							<h:outputText value="#{employees.salePercent} " />
+						</p:column>
+
+						<p:column>
+							<f:facet name="header">
+								<h:outputText value="Roles" />
+							</f:facet>
+							<ui:repeat value="#{employees.empRoles}" var="emprole">
+									#{emprole.roles.name}
+								</ui:repeat>
+						</p:column>
+
+						<p:column>
+							<f:facet name="header">
+								<h:outputText value="Report Permissions" />
+							</f:facet>
+							<p:commandLink value="View" update=":reportDialog"
+								rendered="#{employees.empReports.size() != 0}"
+								oncomplete="PF('reportPermissionDialog').show()">
+								<f:param name="id" value="#{employees.id}" />
+								<f:setPropertyActionListener value="#{employees}"
+									target="#{employeeBean.selectedEmployee}" />
+							</p:commandLink>
+						</p:column>
+					</p:dataTable>
+					<p:blockUI block="dataTable" trigger="dataTable">
+						<br />
+						<p:graphicImage name="/images/ajaxloadingbar.gif" />
+					</p:blockUI>
+				</h:form>
+
+				<p:dialog header="Report Permissions" width="300"
+					widgetVar="reportPermissionDialog" id="reportDialog">
+					<div id="reports">
+						<ul>
+							<ui:repeat value="#{employeeBean.selectedEmployee.empReports}"
+								var="row">
+								<li style="text-align: left;">#{row.report.name}</li>
+								<p:spacer height="10px"></p:spacer>
+							</ui:repeat>
+						</ul>
+					</div>
+				</p:dialog>
+
+
+				<p:dialog header="Create New Employee" widgetVar="newEmployeeDialog"
+					resizable="false" id="newEmpDlg" draggable="true" modal="true"
+					closeOnEscape="true">
+					<h:form id="newUserForm">
+						<p:panelGrid id="displayNewUser" columns="2" cellpadding="4"
+							styleClass="panelGrid">
+							<p:outputLabel value="Name :" for="newEmployeeName" />
+							<p:inputText value="#{employeeBean.newEmployee.name}"
+								required="true" id="newEmployeeName" label="newEmployeeName"
+								requiredMessage="Please Employee Name" maxlength="30" />
+
+							<p:outputLabel value="Username :" for="newEmployeeUsername" />
+							<p:inputText value="#{employeeBean.newEmployee.username}"
+								required="true" id="newEmployeeUsername" maxlength="15"
+								label="newEmployeeUsername" requiredMessage="Please User Name" />
+
+							<p:outputLabel value="Address :" for="newEmployeeAddress" />
+							<p:inputText value="#{employeeBean.newEmployee.address}"
+								id="newEmployeeAddress" maxlength="50" />
+
+
+							<p:outputLabel value="City :" for="newEmployeeCity" />
+							<p:inputText value="#{employeeBean.newEmployee.city}"
+								id="newEmployeeCity" maxlength="20" />
+
+
+							<p:outputLabel value="State :" for="newEmployeeState" />
+							<p:inputText value="#{employeeBean.newEmployee.state}"
+								id="newEmployeeState" maxlength="16" />
+
+							<p:outputLabel value="Email :" for="newEmployeeEmail" />
+							<p:inputText value="#{employeeBean.newEmployee.email}"
+								id="newEmployeeEmail" maxlength="16" />
+
+							<p:outputLabel value="Mobile :" for="newEmployeeMobile" />
+							<pe:inputNumber value="#{employeeBean.newEmployee.mobile}"
+								required="true" id="newEmployeeMobile" decimalPlaces="0"
+								thousandSeparator="" requiredMessage="Please Enter Mobile!"
+								maxlength="10" maxValue="9999999999" />
+
+							<p:outputLabel value="Company :" for="newEmployeeCompanyName" />
+							<p:selectOneMenu id="newEmployeeCompanyName"
+								value="#{employeeBean.newEmployee.company.id}" required="true"
+								requiredMessage="Please Select Company">
+								<f:converter converterId="com.fmart.ui.utils.CompanyConverter" />
+								<f:selectItem itemLabel="Select One" itemValue="" selectitems="" />
+								<f:selectItems value="#{constantsBean.getCompanies()}"
+									var="company" itemValue="#{company.id}"
+									itemLabel="#{company.name}" />
+							</p:selectOneMenu>
+
+							<p:outputLabel value="Designation :" for="newEmployeeDesignation" />
+							<p:inputText value="#{employeeBean.newEmployee.designation}"
+								id="newEmployeeDesignation" maxlength="16" />
+
+
+							<p:outputLabel value="Roles :" for="newEmployeeRoles" />
+							<p:selectOneMenu required="true" id="newEmployeeRoles"
+								value="#{employeeBean.selectedRole}" widgetVar="roleVar"
+								requiredMessage="Please Enter Roles!" label="Roles"
+								filter="true" filterMatchMode="startsWith"
+								panelStyle="width:250px">
+								<f:converter converterId="com.fmart.ui.utils.RoleConverter" />
+								<f:selectItem itemLabel="Select Role" itemValue=""></f:selectItem>
+								<f:selectItems value="#{employeeBean.getRolesForCurrentUser()}"
+									var="roles" itemValue="#{roles.id}" itemLabel="#{roles.name}" />
+								<p:ajax event="change" update=":newUserForm:newEmployeeReport"></p:ajax>
+							</p:selectOneMenu>
+
+							<p:outputLabel value="Sales Percentage :" for="newEmployeeSalPer" />
+							<p:inputText value="#{employeeBean.newEmployee.salePercent}"
+								id="newEmployeeSalPer" maxlength="16" />
+
+							<p:outputLabel value="Report Permissions :"
+								for="newEmployeeReport" />
+							<p:selectCheckboxMenu id="newEmployeeReport"
+								widgetVar="reportVar" value="#{employeeBean.selectedReport}"
+								label="report" filter="true" filterMatchMode="startsWith"
+								panelStyle="width:250px">
+								<f:selectItems value="#{employeeBean.getReports()}" var="report"
+									itemValue="#{report.id}" itemLabel="#{report.name}" />
+							</p:selectCheckboxMenu>
+
+							<f:facet name="footer">
+								<p:commandButton value="Submit"
+									update=":form:dataTable, :form:messages, @widgetVar(roleVar), @widgetVar(reportVar)"
+									oncomplete=" handlePageSubmitRequest(xhr, status, args, 'newEmpDlg','newUserForm');"
+									actionListener="#{employeeBean.saveEmployee}" />
+								<p:commandButton type="reset" value="Reset"></p:commandButton>
+							</f:facet>
+						</p:panelGrid>
+					</h:form>
+				</p:dialog>
+
+				<p:dialog header="Employee Detail" widgetVar="editEmployeeDialog"
+					resizable="false" id="editEmpDlg" draggable="true" modal="true"
+					closeOnEscape="true">
+					<h:form id="employeeDetailForm">
+						<p:panelGrid id="editUser" columns="2" cellpadding="4"
+							style="margin:0 auto" styleClass="panelGrid">
+							<p:outputLabel value="Name :" for="editEmployeeName" />
+							<p:inputText value="#{employeeBean.selectedEmployee.name}"
+								required="true" id="editEmployeeName" label="editEmployeeName"
+								requiredMessage="Please Employee Name" maxlength="30" />
+
+							<p:outputLabel value="Username :" for="editEmployeeUsername" />
+							<p:inputText value="#{employeeBean.selectedEmployee.username}"
+								required="true" id="editEmployeeUsername" maxlength="15"
+								label="editEmployeeUsername" requiredMessage="Please User Name" />
+
+							<p:outputLabel value="Address :" for="editEmployeeAddress" />
+							<p:inputText value="#{employeeBean.selectedEmployee.address}"
+								id="editEmployeeAddress" maxlength="50" />
+
+							<p:outputLabel value="City :" for="editEmployeeCity" />
+							<p:inputText value="#{employeeBean.selectedEmployee.city}"
+								id="editEmployeeCity" maxlength="20" />
+
+							<p:outputLabel value="State :" for="editEmployeeState" />
+							<p:inputText value="#{employeeBean.selectedEmployee.state}"
+								id="editEmployeeState" maxlength="16" />
+
+							<p:outputLabel value="Email :" for="editEmployeeEmail" />
+							<p:inputText value="#{employeeBean.selectedEmployee.email}"
+								id="editEmployeeEmail" maxlength="16" />
+
+							<p:outputLabel value="Mobile :" for="editEmployeeMobile" />
+							<pe:inputNumber value="#{employeeBean.selectedEmployee.mobile}"
+								thousandSeparator="" decimalPlaces="0" required="true"
+								id="editEmployeeMobile" maxValue="9999999999"
+								requiredMessage="Please Enter Mobile!" maxlength="10" />
+
+							<p:outputLabel value="Company :" for="editEmployeeCompanyName" />
+							<p:selectOneMenu id="editEmployeeCompanyName"
+								value="#{employeeBean.selectedEmployee.company.id}"
+								required="true" requiredMessage="Please Select Company">
+								<f:converter converterId="com.fmart.ui.utils.CompanyConverter" />
+								<f:selectItem itemLabel="Select One" itemValue="" selectitems="" />
+								<f:selectItems value="#{constantsBean.getCompanies()}"
+									var="company" itemValue="#{company.id}"
+									itemLabel="#{company.name}" />
+							</p:selectOneMenu>
+
+							<p:outputLabel value="Designation :"
+								for="editEmployeeDesignation" />
+							<p:inputText value="#{employeeBean.selectedEmployee.designation}"
+								id="editEmployeeDesignation" maxlength="16" />
+
+							<p:outputLabel value="Roles :" for="editEmployeeRoles" />
+							<p:selectOneMenu required="true" id="editEmployeeRoles"
+								value="#{employeeBean.selectedRole}"
+								requiredMessage="Please Enter Roles!" label="Roles"
+								filter="true" filterMatchMode="startsWith"
+								panelStyle="width:250px">
+								<f:converter converterId="com.fmart.ui.utils.RoleConverter" />
+								<f:selectItems value="#{employeeBean.getRolesForCurrentUser()}"
+									var="roles" itemValue="#{roles.id}" itemLabel="#{roles.name}" />
+								<p:ajax event="change"
+									update=":employeeDetailForm:editEmployeeReport"></p:ajax>
+							</p:selectOneMenu>
+
+							<p:outputLabel value="Sales Percentage :" />
+							<p:inputText value="#{employeeBean.selectedEmployee.salePercent}"
+								id="editEmployeeSalPer" maxlength="16" />
+
+							<p:outputLabel value="Report Permissions :"
+								for="editEmployeeReport" />
+							<p:selectCheckboxMenu id="editEmployeeReport"
+								value="#{employeeBean.selectedReport}" label="report"
+								filter="true" filterMatchMode="startsWith"
+								panelStyle="width:250px">
+								<!-- <f:converter converterId="com.fmart.ui.utils.ReportRoleConverter" /> -->
+								<f:selectItems value="#{employeeBean.getReportsForUpdate()}"
+									var="report" itemValue="#{report.id}"
+									itemLabel="#{report.name}" />
+							</p:selectCheckboxMenu>
+							<p:outputLabel value="Activate" for="editEmployeeReport" />
+							<p:selectBooleanCheckbox
+								value="#{employeeBean.selectedEmployee.active}" />
+							<f:facet name="footer">
+								<p:commandButton value="Update"
+									update=":form:dataTable, :form:messages"
+									oncomplete="handlePageSubmitRequest(xhr, status, args, 'editEmpDlg','employeeDetailForm'); "
+									actionListener="#{employeeBean.updateEmployee}" />
+
+							</f:facet>
+						</p:panelGrid>
+					</h:form>
+				</p:dialog>
+
+			</ui:define>
+
+		</ui:composition>
+
+	</h:body>
+
+</f:view>
+</html>
+

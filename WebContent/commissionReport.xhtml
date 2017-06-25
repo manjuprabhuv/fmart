@@ -1,0 +1,198 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:pe="http://primefaces.org/ui/extensions">
+
+<f:view contentType="text/html">
+	<h:head>
+	</h:head>
+
+	<h:body>
+		<ui:composition template="templates/template.xhtml">
+
+			<ui:define name="pagebody">
+				<h:form id="report_form">
+
+					<p:growl id="report_messages" showDetail="true" life="3000" />
+					<p:spacer height="5px" />
+
+					<p:panelGrid style="width:100%;" id="panel1">
+						<f:facet name="header">
+							<p:row>
+								<p:column colspan="6">Sales Commision</p:column>
+							</p:row>
+						</f:facet>
+
+						<p:row>
+							<p:column colspan="6">
+								<p:spacer height="0" />
+							</p:column>
+						</p:row>
+
+						<p:row>
+
+							<p:column>
+								<p:outputLabel value="Company : " for="reportCompanyName" />
+							</p:column>
+							<p:column>
+								<p:selectOneMenu id="reportCompanyName"
+									value="#{reportBean.selectedCompany.id}"
+									valueChangeListener="#{reportBean.companyChangeListener}"
+									disabled="#{!userSession.getSession().isRole('Super Admin')}">
+									<f:converter converterId="com.fmart.ui.utils.CompanyConverter" />
+									<f:selectItem itemLabel="Select Company" itemValue="" />
+									<f:selectItems value="#{constantsBean.getCompanies()}"
+										var="company" itemValue="#{company.id}"
+										itemLabel="#{company.name}" />
+									<p:ajax event="change"
+										update=":report_form:selectEmployee, :report_form:GenerateReport"></p:ajax>
+								</p:selectOneMenu>
+							</p:column>
+							<p:column>
+								<p:outputLabel value="Time Period: " for="timePeriod" />
+							</p:column>
+							<p:column>
+								<p:selectOneMenu id="timePeriod"
+									valueChangeListener="#{reportBean.TimePeriodChangeListener}"
+									immediate="true" value="#{reportBean.timePeriod}"
+									required="true">
+									<f:selectItem itemLabel="Today" itemValue="today" />
+									<f:selectItem itemLabel="This Month" itemValue="month" />
+									<f:selectItem itemLabel="Range" itemValue="range" />
+									<p:ajax update=":report_form:fromDate,:report_form:toDate"
+										partialSubmit="true" event="change"></p:ajax>
+								</p:selectOneMenu>
+							</p:column>
+							<p:column>
+								<p:outputLabel value="Created By :" for="selectEmployee" />
+							</p:column>
+							<p:column>
+								<p:selectOneMenu id="selectEmployee"
+									value="#{reportBean.selectedEmployeeId}">
+									<f:converter converterId="genericConverter" />
+									<f:selectItem itemLabel="All Employees" itemValue="">
+									</f:selectItem>
+									<f:selectItems value="#{reportBean.populateEmployees()}"
+										var="employee" itemValue="#{employee.id}"
+										itemLabel="#{employee.name}" />
+									<p:ajax event="change" update=":report_form:GenerateReport"></p:ajax>
+								</p:selectOneMenu>
+							</p:column>
+						</p:row>
+
+						<p:row>
+							<p:column>
+								<p:outputLabel value="From Date : " for="fromDate" />
+							</p:column>
+							<p:column>
+								<p:calendar id="fromDate" value="#{reportBean.fromDate}"
+									disabled="#{reportBean.dateRange}" showOn="button"
+									maxdate="01/01/2030" required="true" pattern="dd/MM/yyyy"
+									requiredMessage="Please Enter the From Date!">
+									<f:convertDateTime pattern="dd/MM/yyyy" type="date" />
+								</p:calendar>
+							</p:column>
+
+							<p:column>
+								<p:outputLabel value="To Date : " for="toDate" />
+							</p:column>
+							<p:column>
+								<p:calendar id="toDate" value="#{reportBean.toDate}"
+									disabled="#{reportBean.dateRange}" showOn="button"
+									maxdate="01/01/2030" required="true" pattern="dd/MM/yyyy"
+									requiredMessage="Please Enter the To Date!">
+									<f:convertDateTime pattern="dd/MM/yyyy" type="date" />
+								</p:calendar>
+							</p:column>
+							<p:column colspan="2">
+								<p:commandButton value="Generate Report" label="Generate Report"
+									id="GenerateReport"
+									actionListener="#{reportBean.generateCommissionReports}"
+									disabled="#{!reportBean.generateReportButton}"
+									update=":report_form:commissionReport_datatable, :report_form:report_messages"></p:commandButton>
+							</p:column>
+						</p:row>
+
+						<p:row>
+							<p:column colspan="6">
+							</p:column>
+						</p:row>
+						<p:row>
+							<p:column colspan="6">
+
+								<p:dataTable id="commissionReport_datatable" var="sale"
+									paginatorTemplate="{FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {Exporters}"
+									value="#{reportBean.sales}" paginator="true" rows="10"
+									style="margin-bottom:20px">
+									<f:facet name="{Exporters}">
+										<h:commandLink
+											rendered="#{userSession.getSession().isRole('Super Admin')}">
+											<p:graphicImage library="images" name="xls_logo.png"
+												width="24" />
+											<p:dataExporter type="xls" target="salaryReport_datatable"
+												fileName="SalaryReport" />
+										</h:commandLink>
+
+										<h:commandLink
+											rendered="#{userSession.getSession().isRole('Super Admin')}">
+											<p:graphicImage library="images" name="pdf_logo.png"
+												width="24" />
+											<p:dataExporter type="pdf" target="salaryReport_datatable"
+												fileName="SalaryReport" />
+										</h:commandLink>
+
+									</f:facet>
+									<p:column sortBy="#{sale.id}">
+										<f:facet name="header">
+											<h:outputText value="Sale Id" />
+										</f:facet>
+										<h:outputText value="#{sale.id}"/>
+									</p:column>
+
+									<p:column sortBy="#{sale.created}">
+										<f:facet name="header">
+											<h:outputText value="Created Date" />
+										</f:facet>
+										<h:outputText value="#{sale.created}">
+											<f:convertDateTime pattern="dd/MM/yyyy" type="date" />
+										</h:outputText>
+									</p:column>
+									<p:column sortBy="#{sale.amount}">
+										<f:facet name="header">
+											<h:outputText value="Sale Amount" />
+										</f:facet>
+										<h:outputText value="#{sale.amount}" />
+									</p:column>
+									<p:column sortBy="#{sale.employeeByCreatedBy.name}">
+										<f:facet name="header">
+											<h:outputText value="Created By" />
+										</f:facet>
+										<h:outputText value="#{sale.employeeByCreatedBy.name}" />
+									</p:column>
+									<p:column sortBy="#{sale.commission}">
+										<f:facet name="header">
+											<h:outputText value="Commission Amount" />
+										</f:facet>
+										<h:outputText value="#{sale.commission}" />
+									</p:column>
+									
+								</p:dataTable>
+							</p:column>
+						</p:row>
+
+					</p:panelGrid>
+
+
+				</h:form>
+			</ui:define>
+
+		</ui:composition>
+
+	</h:body>
+
+</f:view>
+</html>
+

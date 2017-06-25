@@ -1,0 +1,139 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:pe="http://primefaces.org/ui/extensions">
+
+<f:view contentType="text/html">
+	<h:head>
+		<style type="text/css">
+
+</style>
+<h:outputScript library="js" name="prettyprint.js" />
+		<script type="text/javascript">
+			/* function handlePageSubmitRequest(xhr, status, args, dialogName,
+					formName) {
+				dialog = jQuery('#' + dialogName);
+				if (args.validationFailed) {
+					dialog.effect("shake", {
+						times : 3
+					}, 100);
+				} else {
+					clearForm(formName);
+					PF('newProductGroupDialog').hide();
+					PF('productGroupDetailDialog').hide();
+				}
+			} */
+			function clearForm(formName) {
+				jQuery('#' + formName).each(function() {
+					this.reset();
+				});
+			}
+		</script>
+
+	</h:head>
+
+	<h:body>
+		<ui:composition template="templates/template.xhtml">
+
+			<ui:define name="pagebody">
+				<h:form id="form">
+					<p:spacer height="25px"></p:spacer>
+					<p:growl id="messages" showDetail="true"  life="3000" />
+					<p:commandButton id="appBtn" value="Approve"
+						icon="ui-icon ui-icon-circle-check" style="margin:0"
+						actionListener="#{notificationBean.approveNotification}"
+						update=":form:dataTable, :form:messages" />
+					<p:dataTable id="dataTable" var="notifications"
+						value="#{notificationBean.notifications}"
+						paginator="true" rows="10" rowKey="#{notifications.id}"
+						selection="#{notificationBean.selectedNotifications}">
+						<f:facet name="header">
+						</f:facet>
+						<p:column selectionMode="multiple" style="width:18px" />
+						<p:column sortBy="#{notifications.type}">
+							<f:facet name="header">
+								<h:outputText value="Type" />
+							</f:facet>
+							<h:outputText value="#{notifications.type}" />							
+						</p:column>
+						<p:column sortBy="#{notifications.type}">
+							<f:facet name="header">
+								<h:outputText value="Updated By" />
+							</f:facet>
+							<h:outputText value="#{notifications.updateBy}" />							
+						</p:column>
+						<p:column sortBy="#{notifications.action}">
+							<f:facet name="header">
+								<h:outputText value="Action" />
+							</f:facet>
+							<h:outputText value="#{notifications.action}" />							
+						</p:column>
+						<p:column>
+							<f:facet name="header">
+								<h:outputText value="Change" />
+							</f:facet>
+							<p:commandLink value="View" update=":diffDlg"								
+								oncomplete="PF('differenceDialog').show()">
+								<f:param name="id" value="#{notifications.id}" />
+								<f:setPropertyActionListener value="#{notifications}"
+									target="#{notificationBean.selectedNotification}" />
+							</p:commandLink>
+						</p:column>
+						<p:column >
+										<f:facet name="header">
+											<h:outputText value="Date" />
+										</f:facet>
+										<h:outputText value="#{notifications.date}">
+											<f:convertDateTime pattern="dd/MM/yyyy HH:mm" type="date" />
+										</h:outputText>
+									</p:column>
+					</p:dataTable>
+					<p:blockUI block="dataTable" trigger="dataTable">
+						<br />
+						<p:graphicImage name="/images/ajaxloadingbar.gif" />
+					</p:blockUI>
+				</h:form>
+				<p:dialog header="Difference"
+					widgetVar="differenceDialog" resizable="false" id="diffDlg"
+					draggable="true" modal="true" closeOnEscape="true">
+				
+				<div style="height:600px;overflow:auto;">
+					<table >
+					<tr>
+						<th>From Value</th>
+						<th>To value</th> 
+						
+					  </tr>
+					  <tr>
+						<td valign="top"><div id="from" ></div></td>
+						<td valign="top"><div id="to"></div></td> 
+						
+					  </tr>
+					</table>
+					</div>
+				
+					<script>
+					var fromjson =#{notificationBean.selectedNotification.fromVal};
+					var tojson =#{notificationBean.selectedNotification.toVal};
+					//alert(JSON.stringify(fromjson));
+					//alert(JSON.stringify(tojson));
+					var fromTable = prettyPrint(fromjson);
+					var toTable = prettyPrint(tojson);
+					document.getElementById('from').appendChild(fromTable);
+					document.getElementById('to').appendChild(toTable);
+					</script>
+				</p:dialog>
+
+				
+
+			</ui:define>
+
+		</ui:composition>
+	</h:body>
+
+</f:view>
+</html>
+

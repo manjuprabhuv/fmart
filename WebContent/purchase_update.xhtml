@@ -1,0 +1,368 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:pe="http://primefaces.org/ui/extensions">
+
+<f:view contentType="text/html">
+	<h:head>
+
+		<script type="text/javascript">
+			function handleAddRequest(xhr, status, args, dialogName, formName) {
+				dialog = jQuery('#' + dialogName);
+				if (args.validationFailed) {
+					dialog.effect("shake", {
+						times : 3
+					}, 100);
+				} else {
+					clearForm(formName);
+					PF('addProDlg').hide();
+				}
+			}
+			function handleAddMoreRequest(xhr, status, args, dialogName,
+					formName) {
+				dialog = jQuery('#' + dialogName);
+				if (args.validationFailed) {
+					dialog.effect("shake", {
+						times : 3
+					}, 100);
+				} else {
+					clearForm(formName);
+				}
+			}
+			function handlePageSubmitRequest(xhr, status, args, dialogName,
+					formName) {
+				dialog = jQuery('#' + dialogName);
+				if (args.validationFailed) {
+					dialog.effect("shake", {
+						times : 3
+					}, 100);
+				} else {
+					clearForm(formName);
+					PF('updatePurDlg').hide();
+				}
+			}
+			function clearForm(formName) {
+				jQuery('#' + formName).each(function() {
+					this.reset();
+				});
+			}
+		</script>
+	</h:head>
+
+	<h:body>
+		<ui:composition template="templates/template.xhtml">
+
+			<ui:define name="pagebody">
+				<h:form id="purchase_update_form">
+
+					<p:growl id="purchase_update_messages" showDetail="true"
+						life="3000" />
+					<p:spacer height="5px" />
+					<p:commandButton id="purchase_update" rendered="false"
+						binding="#{viewPurchaseManagedBean.pageTypeButton}" />
+
+
+					<p:panel id="purchase_update_panel1">
+						<f:facet name="header">
+							<p:row>
+								<p:column colspan="6">Purchase List : Update Page</p:column>
+							</p:row>
+						</f:facet>
+						<p:row>
+							<p:column colspan="6">
+								<p:dataTable id="panel1_datatable" var="purchase"
+									value="#{viewPurchaseManagedBean.purchases}" paginator="true"
+									rows="10" rowKey="#{purchase.id}" lazy="true"
+									paginatorTemplate="{RowsPerPageDropdown} {FirstPageLink} {PreviousPageLink} {CurrentPageReport} {NextPageLink} {LastPageLink}"
+									selection="#{viewPurchaseManagedBean.selectedPurchases}">
+
+									<p:column sortBy="#{purchase.id}">
+										<f:facet name="header">
+											<h:outputText value="Purchase Id" />
+										</f:facet>
+										<p:commandLink value="#{purchase.id}"
+											update=":updPurchaseForm:purchase_update_panel2"
+											oncomplete="PF('updatePurDlg').show()"
+											disabled="#{!purchase.updateable}">
+											<f:setPropertyActionListener value="#{purchase}"
+												target="#{viewPurchaseManagedBean.newPurchase}" />
+										</p:commandLink>
+									</p:column>
+									<p:column sortBy="#{purchase.created}">
+										<f:facet name="header">
+											<h:outputText value="Date" />
+										</f:facet>
+										<h:outputText value="#{purchase.created}">
+											<f:convertDateTime pattern="dd/MM/yyyy" type="date" />
+										</h:outputText>
+									</p:column>
+									<p:column sortBy="#{purchase.dealer.name}">
+										<f:facet name="header">
+											<h:outputText value="Dealer" />
+										</f:facet>
+										<h:outputText value="#{purchase.dealer.name}" />
+									</p:column>
+									<p:column sortBy="#{purchase.description}">
+										<f:facet name="header">
+											<h:outputText value="Description" />
+										</f:facet>
+										<h:outputText value="#{purchase.description}" />
+									</p:column>
+									<p:column sortBy="#{purchase.amount}" rendered="#{!userSession.getSession().isAuthorized('Amount')}">
+										<f:facet name="header">
+											<h:outputText value="Amount" />
+										</f:facet>
+										<h:outputText value="#{purchase.amount}" />
+									</p:column>
+									<p:column sortBy="#{purchase.employeeByCreatedBy.name}" rendered="#{!userSession.getSession().isAuthorized('Employee')}">
+										<f:facet name="header">
+											<h:outputText value="Created By" />
+										</f:facet>
+										<h:outputText value="#{purchase.employeeByCreatedBy.name}" />
+									</p:column>
+								</p:dataTable>
+								<p:blockUI block="panel1_datatable" trigger="panel1_datatable">
+									<br />
+									<p:graphicImage name="/images/ajaxloadingbar.gif" />
+								</p:blockUI>
+							</p:column>
+						</p:row>
+					</p:panel>
+
+
+				</h:form>
+				<p:dialog header="Update Purchase" widgetVar="updatePurDlg"
+					resizable="false" id="updPurDlg" draggable="true" modal="true"
+					closeOnEscape="true" width="70%">
+					<p:ajax event="close" immediate="true" update="updPurDlg"
+						resetValues="true" />
+					<h:form id="updPurchaseForm">
+						<p:growl id="updPurchaseForm_messages" showDetail="true"
+							life="3000" />
+						<p:panel id="purchase_update_panel2">
+
+							<p:panelGrid style="width:100%;" id="panel">
+								<f:facet name="header">
+									<p:row>
+										<p:column colspan="6">Purchase Update</p:column>
+									</p:row>
+								</f:facet>
+
+								<p:row>
+									<p:column colspan="6">
+										<p:spacer height="0" />
+									</p:column>
+								</p:row>
+
+								<p:row>
+									<p:column>Dealer</p:column>
+									<p:column>
+										<p:autoComplete id="dealerP" dropdown="true"
+											value="#{viewPurchaseManagedBean.selectedDealer}"
+											completeMethod="#{viewPurchaseManagedBean.populateDealers}"
+											converter="genericConverter" var="dealer"
+											itemLabel="#{dealer.name}" itemValue="#{dealer.id}" />
+									</p:column>
+									<p:column>Company</p:column>
+									<p:column>
+										<h:outputText
+											value="#{viewPurchaseManagedBean.selectedCompany.name}" />
+									</p:column>
+
+									<p:column>
+										<p:outputLabel for="date" value="Date:" />
+									</p:column>
+									<p:column>
+										<p:calendar id="date"
+											value="#{viewPurchaseManagedBean.newPurchase.created}"
+											pattern="dd/MM/yyyy" showOn="button" maxdate="01/01/2030"
+											required="true" requiredMessage="Please Enter the Date">
+											<f:convertDateTime pattern="dd/MM/yyyy" type="date" />
+										</p:calendar>
+									</p:column>
+
+
+
+								</p:row>
+
+								<p:row>
+									<p:column colspan="6">
+										<p:spacer height="0" />
+									</p:column>
+								</p:row>
+
+								<p:row>
+									<p:column colspan="6">
+										<p:commandButton id="addProduct" value="Add Product"
+											style="margin:0" oncomplete="PF('addProDlg').show()" />
+										<p:commandButton id="deleteProduct" value="Delete Product"
+											style="margin:0"
+											actionListener="#{viewPurchaseManagedBean.deletePurchaseDetails}"
+											update=":updPurchaseForm:purchase_update_datatable, :updPurchaseForm:updPurchaseForm_messages">
+											<p:confirm header="Confirmation"
+												message="Are you sure you want to delete this product?"
+												icon="ui-icon-alert" />
+										</p:commandButton>
+									</p:column>
+								</p:row>
+								<p:row>
+									<p:column colspan="6">
+										<p:dataTable id="purchase_update_datatable"
+											var="purchase_detail"
+											value="#{viewPurchaseManagedBean.purchaseDetails}"
+											paginator="true" rows="10" rowKey="#{purchase_detail.id}"
+											selection="#{viewPurchaseManagedBean.selectedPurchaseDetails}">
+											<p:column selectionMode="multiple" style="width:18px" />
+											<p:column sortBy="#{purchase_detail.product.productGrp.name}">
+												<f:facet name="header">
+													<h:outputText value="Product Group" />
+												</f:facet>
+												<h:outputText
+													value="#{purchase_detail.product.productGrp.name}" />
+											</p:column>
+											<p:column>
+												<f:facet name="header">
+													<h:outputText value="Product Name" />
+												</f:facet>
+												<h:outputText value="#{purchase_detail.product.name}" />
+											</p:column>
+											<p:column>
+												<f:facet name="header">
+													<h:outputText value="Quantity" />
+												</f:facet>
+												<pe:inputNumber value="#{purchase_detail.quantity}"
+													thousandSeparator="" decimalPlaces="0" />
+											</p:column>
+											<p:column>
+												<f:facet name="header">
+													<h:outputText value="Customised" />
+												</f:facet>
+												<p:selectBooleanCheckbox
+													value="#{purchase_detail.customised}" disabled="true" />
+											</p:column>
+											<p:column>
+												<f:facet name="header">
+													<h:outputText value="Remarks" />
+												</f:facet>
+												<p:inputText value="#{purchase_detail.remarks}"
+													maxlength="50" />
+											</p:column>
+											<p:column
+												rendered="#{userSession.getSession().isRole('Admin')}">
+												<f:facet name="header">
+													<h:outputText value="Unit Price" />
+												</f:facet>
+												<pe:inputNumber value="#{purchase_detail.rate}"
+													thousandSeparator="" decimalPlaces="0" />
+											</p:column>
+										</p:dataTable>
+									</p:column>
+								</p:row>
+								<p:row>
+									<p:column colspan="6">
+										<p:commandButton id="submit" value="Update" style="margin:0"
+											update=":purchase_update_form:panel1_datatable, :purchase_update_form:purchase_update_messages, :purchase_update_form"
+											oncomplete=" handlePageSubmitRequest(xhr, status, args, 'updPurDlg','updPurchaseForm');"
+											actionListener="#{viewPurchaseManagedBean.savePurchaseEntry}" />
+										<p:spacer width="5px" />
+									</p:column>
+								</p:row>
+
+							</p:panelGrid>
+
+						</p:panel>
+						<p:confirmDialog global="true">
+							<p:commandButton value="Yes" type="button"
+								styleClass="ui-confirmdialog-yes" icon="ui-icon-check" />
+							<p:commandButton value="No" type="button"
+								styleClass="ui-confirmdialog-no" icon="ui-icon-close" />
+						</p:confirmDialog>
+
+					</h:form>
+				</p:dialog>
+				<p:dialog header="Add Product" widgetVar="addProDlg"
+					resizable="false" id="addProDlg" draggable="true" modal="true"
+					closeOnEscape="true" styleClass="panelGrid">
+					<p:ajax event="close" immediate="true" update="addProDlg"
+						resetValues="true" />
+					<h:form id="addProductForm">
+						<p:panelGrid id="display" columns="2" cellpadding="4"
+							style="margin:0 auto;">
+							<p:outputLabel value="Product Group :" for="productGrpP" />
+							<p:autoComplete id="productGrpP" dropdown="true"
+								value="#{viewPurchaseManagedBean.selectedProductGroup}"
+								completeMethod="#{viewPurchaseManagedBean.populateProductGroups}"
+								converter="genericConverter" var="productGroup"
+								itemLabel="#{productGroup.name}" itemValue="#{productGroup.id}"
+								update=":addProDlg:productP" required="true"
+								requiredMessage="Please Select Product Group">
+								<p:ajax event="itemSelect" partialSubmit="true" update=":addProductForm:productP"></p:ajax>
+							</p:autoComplete>
+
+							<p:outputLabel value="Product :" for="productP" />
+							<p:autoComplete id="productP" dropdown="true"
+								value="#{viewPurchaseManagedBean.selectedProduct}"
+								completeMethod="#{viewPurchaseManagedBean.populateProducts}"
+								converter="genericConverter" var="product"
+								itemLabel="#{product.name}" itemValue="#{product.id}"
+								required="true" requiredMessage="Please Select Product">
+								<p:ajax event="itemSelect" partialSubmit="true"></p:ajax>
+							</p:autoComplete>
+
+							<p:outputLabel value="Image :" />
+							<p:commandLink value="View" update=":imageDialog"
+								oncomplete="PF('imageDialog').show()">
+								<f:param name="id"
+									value="#{viewPurchaseManagedBean.selectedProduct.id}" />
+							</p:commandLink>
+							<p:outputLabel value="Quantity :" for="quantity" />
+							<pe:inputNumber id="quantity"
+								value="#{viewPurchaseManagedBean.newPurchaseDetail.quantity}"
+								required="true" requiredMessage="Please Enter Quantity"
+								decimalPlaces="0" thousandSeparator="" />
+
+							<p:outputLabel value="Customized :" for="customized" />
+							<p:selectBooleanCheckbox id="customized"
+								value="#{viewPurchaseManagedBean.newPurchaseDetail.customised}" />
+
+							<p:outputLabel value="Remarks :" for="remarks" />
+							<p:inputTextarea id="remarks" maxlength="50"
+								value="#{viewPurchaseManagedBean.newPurchaseDetail.remarks}" />
+
+							<f:facet name="footer">
+								<p:commandButton value="Add Product"
+									update=":updPurchaseForm:purchase_update_datatable, :updPurchaseForm:updPurchaseForm_messages"
+									oncomplete=" handleAddRequest(xhr, status, args, 'addProDlg','addProductForm');"
+									actionListener="#{viewPurchaseManagedBean.addPurchaseDetail}" />
+								<p:commandButton value="Add More Products"
+									update=":updPurchaseForm:purchase_update_datatable, :updPurchaseForm:updPurchaseForm_messages"
+									oncomplete=" handleAddMoreRequest(xhr, status, args, 'addProDlg','addProductForm');"
+									actionListener="#{viewPurchaseManagedBean.addPurchaseDetail}" />
+								<p:commandButton type="reset" value="Reset"></p:commandButton>
+
+							</f:facet>
+						</p:panelGrid>
+					</h:form>
+				</p:dialog>
+				<p:dialog header="Image" width="300" widgetVar="imageDialog"
+					id="imageDialog">
+					<div id="image">
+						<p:graphicImage value="#{images.image}"
+							rendered="#{viewPurchaseManagedBean.selectedProduct.id != 0}">
+							<f:param name="productId"
+								value="#{viewPurchaseManagedBean.selectedProduct.id}" />
+						</p:graphicImage>
+					</div>
+				</p:dialog>
+			</ui:define>
+
+		</ui:composition>
+
+	</h:body>
+
+</f:view>
+</html>
+

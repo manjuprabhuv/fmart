@@ -1,0 +1,272 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:pe="http://primefaces.org/ui/extensions">
+
+<f:view contentType="text/html">
+	<h:head>
+
+		<script type="text/javascript">
+			function handlePageSubmitRequest(xhr, status, args, dialogName,
+					formName) {
+				dialog = jQuery('#' + dialogName);
+				if (args.validationFailed) {
+					dialog.effect("shake", {
+						times : 3
+					}, 100);
+				} else {
+					clearForm(formName);
+					PF('returnSaleDlg').hide();
+				}
+			}
+			function clearForm(formName) {
+				jQuery('#' + formName).each(function() {
+					this.reset();
+				});
+			}
+		</script>
+	</h:head>
+
+	<h:body>
+		<ui:composition template="templates/template.xhtml">
+
+			<ui:define name="pagebody">
+				<h:form id="sale_return_form">
+
+					<p:growl id="sale_return_messages" showDetail="true" life="3000" />
+					<p:spacer height="5px" />
+
+					<p:commandButton id="sale_return" rendered="false"
+						binding="#{saleBean.pageTypeButton}" />
+
+					<p:panel id="sale_return_panel1">
+						<f:facet name="header">
+							<p:row>
+								<p:column colspan="6">Booking List : Return Page</p:column>
+							</p:row>
+						</f:facet>
+
+						<p:row>
+							<p:column colspan="6">
+								<p:dataTable id="panel1_datatable" var="sale"
+									value="#{saleBean.populateSaleList()}" paginator="true"
+									rows="10" rowKey="#{sale.id}" lazy="true"
+									paginatorTemplate="{RowsPerPageDropdown} {FirstPageLink} {PreviousPageLink} {CurrentPageReport} {NextPageLink} {LastPageLink}"
+									selection="#{saleBean.selectedSales}">
+
+									<p:column sortBy="#{sale.id}">
+										<f:facet name="header">
+											<h:outputText value="Sale Id" />
+										</f:facet>
+
+										<p:commandLink value="#{sale.id}"
+											update=":retSaleForm:sale_return_panel2"
+											oncomplete="PF('returnSaleDlg').show()"
+											disabled="#{sale.status.contains('CANCEL') || !sale.updateable}">
+											<f:setPropertyActionListener value="#{sale}"
+												target="#{saleBean.newSale}" />
+										</p:commandLink>
+									</p:column>
+									<p:column sortBy="#{sale.created}">
+										<f:facet name="header">
+											<h:outputText value="Date" />
+										</f:facet>
+										<h:outputText value="#{sale.created}">
+											<f:convertDateTime pattern="dd/MM/yyyy" type="date" />
+										</h:outputText>
+									</p:column>
+									<p:column sortBy="#{sale.customer_name}">
+										<f:facet name="header">
+											<h:outputText value="Customer Name" />
+										</f:facet>
+										<h:outputText value="#{sale.customer.name}" />
+									</p:column>
+									<p:column sortBy="#{sale.amount}">
+										<f:facet name="header">
+											<h:outputText value="Amount" />
+										</f:facet>
+										<h:outputText value="#{sale.amount}" />
+									</p:column>
+									<p:column sortBy="#{sale.status}">
+										<f:facet name="header">
+											<h:outputText value="Status" />
+										</f:facet>
+										<h:outputText value="#{sale.status}" />
+									</p:column>
+									<p:column sortBy="#{sale.employeeByCreatedBy.name}" rendered="#{!userSession.getSession().isAuthorized('Employee')}">
+										<f:facet name="header">
+											<h:outputText value="Created By" />
+										</f:facet>
+										<h:outputText value="#{sale.employeeByCreatedBy.name}" />
+									</p:column>
+								</p:dataTable>
+								<p:blockUI block="panel1_datatable" trigger="panel1_datatable">
+									<br />
+									<p:graphicImage name="/images/ajaxloadingbar.gif" />
+								</p:blockUI>
+							</p:column>
+						</p:row>
+					</p:panel>
+
+				</h:form>
+				<p:dialog header="Return Sale" widgetVar="returnSaleDlg"
+					resizable="false" id="retSaleDlg" draggable="true" modal="true"
+					closeOnEscape="true" width="70%">
+					<p:ajax event="close" immediate="true" update="retSaleDlg"
+						resetValues="true" />
+					<h:form id="retSaleForm">
+						<p:growl id="retSaleForm_messages" showDetail="true" life="3000" />
+						<p:panel id="sale_return_panel2">
+							<p:panelGrid style="width:100%;" id="panel">
+								<f:facet name="header">
+									<p:row>
+										<p:column colspan="6">Sale Return</p:column>
+									</p:row>
+								</f:facet>
+
+								<p:row>
+									<p:column colspan="6">
+										<p:spacer height="0" />
+									</p:column>
+								</p:row>
+
+								<p:row>
+									<p:column>
+										<p:outputLabel value="Customer Name : " />
+									</p:column>
+									<p:column>
+										<h:outputText value="#{saleBean.newSale.customer.name}" />
+									</p:column>
+									<p:column>
+										<p:outputLabel value="Company : " />
+									</p:column>
+									<p:column>
+										<h:outputText value="#{saleBean.selectedCompany.name}" />
+									</p:column>
+
+									<p:column>
+										<p:outputLabel for="date" value="Date:" />
+									</p:column>
+									<p:column>
+										<p:calendar id="date" value="#{saleBean.newSale.created}" disabled="true"
+											pattern="dd/MM/yyyy" showOn="button" maxdate="01/01/2030"
+											required="true" requiredMessage="Please Enter the Date">
+											<f:convertDateTime pattern="dd/MM/yyyy" type="date" />
+										</p:calendar>
+									</p:column>
+
+								</p:row>
+								<p:row>
+									<p:column>
+										<p:outputLabel value="Customer Address : " />
+									</p:column>
+									<p:column colspan="3">
+										<h:outputText value="#{saleBean.newSale.customer.address}" />
+									</p:column>
+									<p:column>
+										<p:outputLabel value="Customer Phone : " />
+									</p:column>
+									<p:column>
+										<h:outputText value="#{saleBean.newSale.customer.phone}" />
+									</p:column>
+								</p:row>
+								<p:row>
+									<p:column>
+										<p:outputLabel value="Advance Deposit : "/>
+									</p:column>
+									<p:column>
+										<h:outputText value="#{saleBean.newSale.advance}" />
+									</p:column>
+								</p:row>
+
+								<p:row>
+									<p:column colspan="6">
+										<p:dataTable id="sale_return_datatable" var="sale"
+											value="#{saleBean.saleDetails}" paginator="true" rows="10"
+											rowKey="#{sale.id}">
+
+											<p:column sortBy="#{sale.product.productGrp.name}">
+												<f:facet name="header">
+													<h:outputText value="Product Group" />
+												</f:facet>
+												<h:outputText value="#{sale.product.productGrp.name}" />
+											</p:column>
+											<p:column sortBy="#{sale.product.name}">
+												<f:facet name="header">
+													<h:outputText value="Product Name" />
+												</f:facet>
+												<h:outputText value="#{sale.product.name}" />
+											</p:column>
+											<p:column sortBy="#{sale.quantity}">
+												<f:facet name="header">
+													<h:outputText value="Quantity" />
+												</f:facet>
+												<h:outputText value="#{sale.quantity}" />
+											</p:column>
+											<p:column sortBy="#{sale.dispatchedQuantity}">
+												<f:facet name="header">
+													<h:outputText value="Dispatched Quantity" />
+												</f:facet>
+												<h:outputText value="#{sale.dispatchedQuantity}" />
+											</p:column>
+											<p:column sortBy="#{sale.customised}">
+												<f:facet name="header">
+													<h:outputText value="Customised" />
+												</f:facet>
+												<p:selectBooleanCheckbox disabled="true"
+													value="#{sale.customised}" />
+											</p:column>
+											<p:column sortBy="#{sale.remarks}">
+												<f:facet name="header">
+													<h:outputText value="Remarks" />
+												</f:facet>
+												<h:outputText value="#{sale.remarks}" />
+											</p:column>
+											<p:column sortBy="#{sale.rate}">
+												<f:facet name="header">
+													<h:outputText value="Unit Price" />
+												</f:facet>
+												<h:outputText value="#{sale.rate}" />
+											</p:column>
+											<p:column sortBy="#{sale.dummyQuantity}">
+												<f:facet name="header">
+													<h:outputText value="Quantity to Return" />
+												</f:facet>
+												<pe:inputNumber value="#{sale.dummyQuantity}"
+													decimalPlaces="0" thousandSeparator=""
+													maxValue="#{sale.dispatchedQuantity}" />
+											</p:column>
+										</p:dataTable>
+										<p:blockUI block="sale_return_datatable" trigger="sale_return_datatable">
+											<br />
+											<p:graphicImage name="/images/ajaxloadingbar.gif" />
+										</p:blockUI>
+									</p:column>
+								</p:row>
+								<p:row>
+									<p:column colspan="6">
+										<p:commandButton id="return_sale" value="Return Booking"
+											style="margin:0"
+											update=":sale_return_form:panel1_datatable, :sale_return_form:sale_return_messages, :sale_return_form"
+											oncomplete=" handlePageSubmitRequest(xhr, status, args, 'retSaleDlg','retSaleForm');"
+											actionListener="#{saleBean.saveSaleEntry}">
+										</p:commandButton>
+									</p:column>
+								</p:row>
+
+							</p:panelGrid>
+						</p:panel>
+					</h:form>
+				</p:dialog>
+			</ui:define>
+
+		</ui:composition>
+
+	</h:body>
+
+</f:view>
+</html>
+

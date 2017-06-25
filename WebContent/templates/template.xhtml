@@ -1,0 +1,405 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:pe="http://primefaces.org/ui/extensions">
+
+<f:view contentType="text/html" id="fview">
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<title>RW Original</title>
+	<ui:debug />
+	<f:metadata>
+		<ui:insert name="metadata" />
+	</f:metadata>
+
+	<h:head>
+		<style type="css/text">
+	.ui-icon-gear {
+            background: url('resources/images/gear_icon.svg')  no-repeat top left !important;
+			background-color: red !important;
+     }
+	</style>
+		<script type="text/javascript">
+			function handleSubmitRequest(xhr, status, args, dialogName,
+					formName) {
+
+				dialog = jQuery('#' + dialogName);
+				if (args.validationFailed) {
+					dialog.effect("shake", {
+						times : 3
+					}, 100);
+				} else {
+					clearForm(formName);
+					PF('changePass').hide();
+					PF('resetPass').hide();
+				}
+			}
+			function clearForm(formName) {
+				jQuery('#' + formName).each(function() {
+					this.reset();
+				});
+			}
+
+			function handleDisconnect() {
+				alert("handleDisconnect");
+				var cookies_s = document.cookie.split(";");
+				alert(cookies_s);
+				var cookieLength = cookies_s.length;
+				alert(cookieLength);
+				var cookies = $.cookie();
+				alert(cookies)
+				for ( var cookie in cookies) {
+					alert(cookie)
+					$.removeCookie(cookie);
+				}
+
+			}
+		</script>
+		<script>
+			
+		</script>
+		<h:outputStylesheet name="css/fmart.css" />
+		<h:outputScript library="js" name="fmart.js" />
+	</h:head>
+	<h:body id="entirePage">
+		<div align="center" width="70%" padding-left="15%">
+			<div>
+				<ui:insert name="header">
+					<div id="header">
+						<div
+							style="float: left; padding-left: 20px; padding-bottom: 10px;">
+							<!-- <img src="images/logo.png" alt="" height="60px" width="180px" /> -->
+							<h:graphicImage library="images" name="logo.png" height="60px"
+								width="180px" />
+						</div>
+						<div style="float: right; padding: 15px;">
+							<h:form id="menuForm">
+								<p:outputLabel> Welcome,  <h:outputText
+										value="#{userSession.getSession().username}" />
+								</p:outputLabel>
+								<p:commandLink id="settingsButton" type="button">
+									<h:graphicImage library="images" name="gear_icon.svg"
+										height="20px" width="25px" />
+								</p:commandLink>
+
+								<p:tieredMenu overlay="true" trigger="settingsButton"
+									my="right top" at="right bottom" style="width:120px">
+									<p:menuitem value="Notifications" url="notifications.xhtml"
+										onclick="PF('bui').show()"
+										disabled="#{userSession.getSession().isAuthorized('Notifications')}" />
+									<p:menuitem value="Change Password"
+										onclick="PF('changePass').show(); return false;"
+										oncomplete=" handleSubmitRequest(xhr, status, args, 'changePass','changePassForm');" />
+									<p:menuitem value="Reset Password"
+										onclick="PF('resetPass').show(); return false;"
+										oncomplete=" handleSubmitRequest(xhr, status, args, 'resetPass','resetPassForm');"
+										disabled="#{userSession.getSession().isAuthorized('ResetPassword')}" />
+									<p:menuitem value="Logout"
+										actionListener="#{loginBean.logout()}" />
+								</p:tieredMenu>
+							</h:form>
+						</div>
+
+					</div>
+				</ui:insert>
+			</div>
+			<div id="menu">
+				<ui:insert name="menu">
+					<h:form>
+						<p:menubar styleClass="centeredMenuBar" id="menubar">
+							<p:menuitem value="Home" url="home.xhtml" />
+							<p:submenu label="Setup">
+								<p:menuitem value="Company" url="company.xhtml"
+									onclick="PF('bui').show()"
+									disabled="#{userSession.getSession().isAuthorized('Company')}" />
+								<p:menuitem value="Employee" url="employee.xhtml"
+									onclick="PF('bui').show()"
+									disabled="#{userSession.getSession().isAuthorized('Employee')}" />
+								<p:menuitem value="Dealer" url="dealer.xhtml"
+									onclick="PF('bui').show()"
+									disabled="#{userSession.getSession().isAuthorized('Dealer')}" />
+								<p:menuitem value="Customer" url="customer.xhtml"
+									onclick="PF('bui').show()" />
+								<p:menuitem value="Product Group" url="product_group.xhtml"
+									onclick="PF('bui').show()" />
+								<p:menuitem value="Product" url="product.xhtml"
+									onclick="PF('bui').show()" />
+								<p:menuitem value="Expense Type" url="expense_type.xhtml"
+									onclick="PF('bui').show()" />
+							</p:submenu>
+
+							<p:submenu label="Transactions">
+								<p:submenu label="Purchase">
+									<p:menuitem value="Entry" url="purchase.xhtml"
+										onclick="PF('bui').show()"
+										disabled="#{userSession.getSession().isAuthorized('Purchase')}" />
+									<p:menuitem value="Update" url="purchase_update.xhtml"
+										onclick="PF('bui').show()"
+										disabled="#{userSession.getSession().isAuthorized('Purchase')}" />
+									<p:menuitem value="Returns" url="purchase_return.xhtml"
+										onclick="PF('bui').show()"
+										disabled="#{userSession.getSession().isAuthorized('Purchase')}" />
+								</p:submenu>
+								<p:submenu label="Sale">
+									<p:menuitem value="Booking" url="sale.xhtml"
+										onclick="PF('bui').show()"
+										disabled="#{userSession.getSession().isAuthorized('Sales')}" />
+									<p:menuitem value="Update" url="sale_update.xhtml"
+										onclick="PF('bui').show()"
+										disabled="#{userSession.getSession().isAuthorized('Sales')}" />
+									<p:menuitem value="Returns" url="sale_return.xhtml"
+										onclick="PF('bui').show()"
+										disabled="#{userSession.getSession().isAuthorized('Sales')}" />
+									<p:menuitem value="Dispatch" url="sale_dispatch.xhtml"
+										onclick="PF('bui').show()"
+										disabled="#{userSession.getSession().isAuthorized('Sales')}" />
+								</p:submenu>
+							</p:submenu>
+
+							<p:submenu label="Accounting">
+								<p:menuitem value="Payments" url="payment.xhtml"
+									onclick="PF('bui').show()"
+									disabled="#{userSession.getSession().isAuthorized('Payments')}" />
+								<p:menuitem value="Receipts" url="receipt.xhtml"
+									onclick="PF('bui').show()"
+									disabled="#{userSession.getSession().isAuthorized('Receipts')}" />
+								<p:menuitem value="Expenses" url="expense.xhtml"
+									onclick="PF('bui').show()"
+									disabled="#{userSession.getSession().isAuthorized('Expenses')}" />
+							</p:submenu>
+
+							<p:submenu label="Print">
+								<p:menuitem value="Purchase"
+									onclick="PF('purchasePrint').show(); return false;">
+								</p:menuitem>
+								<p:menuitem value="Booking"
+									onclick="PF('bookingPrint').show(); return false;"></p:menuitem>
+								<p:menuitem value="Inventory"
+									onclick="PF('inventoryPrint').show(); return false;">
+								</p:menuitem>
+								<p:menuitem value="Stickers" url="sticker_print.xhtml"
+									onclick="PF('bui').show()" />
+							</p:submenu>
+							
+							<p:submenu label="Godown">
+								<p:menuitem value="Godown and Inventory" url="godown.xhtml"
+									onclick="PF('bui').show()"
+									disabled="#{userSession.getSession().isAuthorized('Company')}" />
+								<p:menuitem value="Update Inventory" url="godownInventory.xhtml"
+									onclick="PF('bui').show()"
+									disabled="#{userSession.getSession().isAuthorized('Company')}" />
+
+							</p:submenu>
+
+							<p:submenu label="Reports">
+								<p:menuitem value="Order Bookings" url="orderReport.xhtml"
+									disabled="#{userSession.getSession().disableReport('Order Bookings')}"
+									onclick="PF('bui').show()" />
+								<p:menuitem value="Booking Receipts" onclick="PF('bui').show()"
+									disabled="#{userSession.getSession().disableReport('Booking Receipts')}"
+									url="bookingReceiptReport.xhtml" />
+								<p:menuitem value="Cancelled Bookings"
+									disabled="#{userSession.getSession().disableReport('Cancelled Bookings')}"
+									onclick="PF('bui').show()" url="cancelledBookingReport.xhtml" />
+								<p:separator />
+								<p:menuitem value="Booking Dispatches"
+									url="bookingDispatches.xhtml"
+									disabled="#{userSession.getSession().disableReport('Booking Dispatches')}"
+									onclick="PF('bui').show()" />
+								<p:menuitem value="Booking Returns"
+									url="bookingReturnReport.xhtml"
+									disabled="#{userSession.getSession().disableReport('Booking Returns')}"
+									onclick="PF('bui').show()" />
+								<p:menuitem value="Cleared Sale" url="saleReport.xhtml"
+									disabled="#{userSession.getSession().disableReport('Cleared Sale')}"
+									onclick="PF('bui').show()" />
+								<p:separator />
+								<p:menuitem value="Purchase Inwards" url="purchaseReport.xhtml"
+									disabled="#{userSession.getSession().disableReport('Purchase Inwards')}"
+									onclick="PF('bui').show()" />
+								<p:menuitem value="Purchase Returns" onclick="PF('bui').show()"
+									disabled="#{userSession.getSession().disableReport('Purchase Returns')}"
+									url="purchaseReturnReport.xhtml" />
+								<p:separator />
+								<p:menuitem value="Supplier - Purchases"
+									disabled="#{userSession.getSession().disableReport('Supplier - Purchases')}"
+									url="supplierPurchaseReport.xhtml" onclick="PF('bui').show()" />
+								<p:menuitem value="Supplier - Returns"
+									disabled="#{userSession.getSession().disableReport('Supplier - Returns')}"
+									url="supplierReturnReport.xhtml" onclick="PF('bui').show()" />
+								<p:separator />
+								<p:menuitem value="Sales Commission"
+									url="commissionReport.xhtml"
+									disabled="#{userSession.getSession().isAuthorized('Admin')}" />
+								<p:menuitem value="Expense Report" url="expenseReport.xhtml"
+									disabled="#{userSession.getSession().disableReport('Expense Report')}" />
+								<p:separator />
+								<p:menuitem value="Profit And Loss"
+									url="profitAndLossReport.xhtml"
+									rendered="#{!userSession.getSession().isAuthorized('Admin')}" />
+
+
+							</p:submenu>
+							
+
+						</p:menubar>
+						<p:blockUI block=":entirePage" widgetVar="bui">
+							<h:panelGrid columns="2">
+								<h:graphicImage library="images" name="loader.gif"
+									style="margin-right: 12px; vertical-align: middle;" />
+								<h:outputText value="Please wait..."
+									style="white-space: nowrap;" />
+							</h:panelGrid>
+						</p:blockUI>
+					</h:form>
+				</ui:insert>
+			</div>
+			<div id="pagebody">
+				<ui:insert name="pagebody">
+
+				</ui:insert>
+			</div>
+
+			<div>
+				<ui:insert name="footer">
+					<!-- <ui:include src="footer.xhtml"/> -->
+					<div id="footer">© 2015 ChaiPeCharcha.com</div>
+
+				</ui:insert>
+			</div>
+		</div>
+		<p:dialog header="Reset Password" widgetVar="resetPass" modal="true"
+			width="420" closeOnEscape="true">
+			<h:form id="resetPassForm">
+				<p:growl id="messages" showDetail="true" life="3000" />
+				<p:dataTable id="dataTable" var="employees"
+					value="#{resetPasswordBean.populateEmployeeList()}"
+					style="width:400px;" paginator="true" rows="10"
+					rowKey="#{employees.id}"
+					selection="#{resetPasswordBean.selectedEmployees}">
+					<f:facet name="header">
+					</f:facet>
+					<p:column selectionMode="multiple" style="width:18px" />
+					<p:column sortBy="#{employees.username}">
+						<f:facet name="header">
+							<h:outputText value="Name" />
+						</f:facet>
+						<p:outputLabel value="#{employees.username}">
+						</p:outputLabel>
+					</p:column>
+				</p:dataTable>
+				<p:blockUI block="dataTable" trigger="dataTable">
+					<br />
+					<p:graphicImage name="/images/ajaxloadingbar.gif" />
+				</p:blockUI>
+				<br />
+				<p:commandButton value="Reset Password" style="align:center;"
+					type="submit"
+					actionListener="#{resetPasswordBean.resetEmployeePassword}"
+					update=":resetPassForm:dataTable, :resetPassForm:messages">
+				</p:commandButton>
+			</h:form>
+		</p:dialog>
+		<p:dialog header="Change Password" widgetVar="changePass" modal="true"
+			closeOnEscape="true">
+			<h:form id="changePassForm">
+				<p:growl id="CPmessages" showDetail="true" life="3000" />
+				<p:panelGrid id="changePass" columns="2" cellpadding="4"
+					style="margin:0 auto" styleClass="panelGrid">
+					<p:outputLabel value="Old Password :" for="is1" />
+					<h:inputSecret value="#{changePasswordBean.oldPassword}" id="is1"
+						required="true" requiredMessage="Please Enter Old Password" />
+
+					<p:outputLabel value="New Password :" for="newPass" />
+					<h:inputSecret value="#{changePasswordBean.password}" id="newPass"
+						required="true" requiredMessage="Please Enter New Password" />
+
+					<p:outputLabel value="Confirm Password :" for="confirmPass" />
+					<h:inputSecret value="#{changePasswordBean.confirmPassword}"
+						id="confirmPass" required="true"
+						requiredMessage="Please Enter Confirm Password" />
+
+					<f:facet name="footer">
+						<p:commandButton type="submit" value="Change Password"
+							actionListener="#{changePasswordBean.changePassword}"
+							update=":changePassForm:CPmessages"></p:commandButton>
+					</f:facet>
+				</p:panelGrid>
+			</h:form>
+		</p:dialog>
+		<p:dialog header="Print Purchase" widgetVar="purchasePrint"
+			modal="true" closeOnEscape="true">
+			<h:form id="purchasePrintForm">
+				<p:growl id="purchase_messages" showDetail="true" life="3000" />
+				<p:panelGrid id="purchasePrintFormPG" columns="2" cellpadding="4"
+					style="margin:0 auto" styleClass="panelGrid">
+					<p:outputLabel value="Purchase Id :" for="purchasePrintId" />
+					<pe:inputNumber value="#{printBean.purchaseId}"
+						requiredMessage="Please Enter Purchase Id!" id="purchasePrintId"
+						required="true" thousandSeparator="" decimalPlaces="0" />
+					<p:commandButton value="Submit"
+						update=":purchasePrintForm:purchase_messages"
+						actionListener="#{printBean.purchaseIdInSession}"
+						action="purchase_print.xhtml?faces-redirect=true" />
+				</p:panelGrid>
+			</h:form>
+		</p:dialog>
+
+		<p:dialog header="Print Booking" widgetVar="bookingPrint" modal="true"
+			closeOnEscape="true">
+			<h:form id="bookingPrintForm">
+				<p:growl id="booking_messages" showDetail="true" life="3000" />
+				<p:panelGrid id="bookingPrintFormPG" columns="2" cellpadding="4"
+					style="margin:0 auto" styleClass="panelGrid">
+					<p:outputLabel value="Booking Id :" for="bookingPrintId" />
+					<pe:inputNumber value="#{printBean.bookingId}" id="bookingPrintId"
+						requiredMessage="Please Enter Booking Id!" required="true"
+						thousandSeparator="" decimalPlaces="0" />
+					<p:commandButton value="Submit"
+						update=":bookingPrintForm:booking_messages"
+						actionListener="#{printBean.bookingIdInSession}"
+						action="booking_print.xhtml?faces-redirect=true" />
+				</p:panelGrid>
+			</h:form>
+		</p:dialog>
+
+		<p:dialog header="Inventory" widgetVar="inventoryPrint" modal="true"
+			closeOnEscape="true">
+			<h:form id="inventoryPrintForm">
+				<p:growl id="inventory_messages" showDetail="true" life="3000" />
+				<p:panelGrid id="inventoryPrintFormPG" columns="2" cellpadding="4"
+					style="margin:0 auto" styleClass="panelGrid">
+					<p:outputLabel value="Company :" for="companyList" />
+					<p:selectOneMenu id="companyList" value="#{printBean.companyId}">
+						<f:converter converterId="com.fmart.ui.utils.CompanyConverter" />
+						<f:selectItem itemLabel="Select Company" itemValue="" />
+						<f:selectItems value="#{constantsBean.getCompanies()}"
+							var="company" itemValue="#{company.id}"
+							itemLabel="#{company.name}" />
+					</p:selectOneMenu>
+					<p:commandButton value="Submit"
+						update=":inventoryPrintForm:inventory_messages"
+						action="inventory_print.xhtml?faces-redirect=true" />
+				</p:panelGrid>
+			</h:form>
+		</p:dialog>
+
+		<p:dialog header="Error Message" widgetVar="ErrMsgDialog"
+			visible="#{param['autherror']}" resizable="false" id="errDlg"
+			draggable="true" modal="true" closeOnEscape="true">
+			<h:outputText
+				value="You are Unauthorized to view the requested Page! &lt;br&gt; Redirecting to Home page"
+				escape="false" style="align:center;" />
+
+		</p:dialog>
+		<h:form>
+			<p:poll interval="20" listener="#{userSession.poll}" autoStart="true"
+				onerror="handleDisconnectivity();" />
+		</h:form>
+	</h:body>
+
+</f:view>
+</html>

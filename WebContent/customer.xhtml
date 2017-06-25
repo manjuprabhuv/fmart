@@ -1,0 +1,158 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:pe="http://primefaces.org/ui/extensions"
+	xmlns:fn="http://java.sun.com/jsp/jstl/functions"
+	xmlns:c="http://java.sun.com/jstl/core">
+
+<f:view contentType="text/html">
+	<h:head>
+
+		<script type="text/javascript">
+			function handlePageSubmitRequest(xhr, status, args, dialogName,
+					formName) {
+				dialog = jQuery('#' + dialogName);
+				if (args.validationFailed) {
+					dialog.effect("shake", {
+						times : 3
+					}, 100);
+				} else {
+					clearForm(formName);
+					PF('newCustomerDialog').hide();
+					PF('editCustomerDialog').hide();
+				}
+			}
+			function clearForm(formName) {
+				jQuery('#' + formName).each(function() {
+					this.reset();
+				});
+			}
+		</script>
+
+	</h:head>
+
+	<h:body>
+		<ui:composition template="templates/template.xhtml">
+
+			<ui:define name="pagebody">
+
+				<h:form id="form">
+				<p:spacer height="25px"></p:spacer>
+					<p:growl id="messages" showDetail="true" life="3000" />
+					<p:commandButton id="saveBtn" value="Create Customer"
+						icon="ui-icon ui-icon-disk" style="margin:0"
+						oncomplete="PF('newCustomerDialog').show()" />
+
+					<p:dataTable id="dataTable" var="customers"
+						value="#{customerBean.customers}" paginator="true"
+						rows="10" rowKey="#{customers.id}"
+						selection="#{customerBean.selectedCustomers}">
+						<f:facet name="header">
+						</f:facet>
+						<p:column sortBy="#{customers.name}">
+							<f:facet name="header">
+								<h:outputText value="Name" />
+							</f:facet>
+							<p:commandLink value="#{customers.name}"
+								update=":customerDetailForm:editUser"
+								oncomplete="PF('editCustomerDialog').show()">
+								<f:param name="id" value="#{customers.id}" />
+								<f:setPropertyActionListener value="#{customers}"
+									target="#{customerBean.selectedCustomer}" />
+							</p:commandLink>
+						</p:column>
+						<p:column sortBy="#{customers.address}">
+							<f:facet name="header">
+								<h:outputText value="Address" />
+							</f:facet>
+							<h:outputText value="#{customers.address}" />
+						</p:column>
+						<p:column sortBy="#{customers.phone}">
+							<f:facet name="header">
+								<h:outputText value="Phone" />
+							</f:facet>
+							<h:outputText value="#{customers.phone}" />
+						</p:column>
+					</p:dataTable>
+					<p:blockUI block="dataTable" trigger="dataTable">
+						<br />
+						<p:graphicImage name="/images/ajaxloadingbar.gif" />
+					</p:blockUI>
+				</h:form>
+
+				<p:dialog header="Create New Customer" widgetVar="newCustomerDialog"
+					resizable="false" id="newCustDlg" draggable="true" modal="true"
+					closeOnEscape="true">
+					<h:form id="newUserForm">
+						<p:panelGrid id="displayNewUser" columns="2" cellpadding="4"
+							styleClass="panelGrid">
+							<p:outputLabel value="Name :" for="newCustomerName" />
+							<p:inputText value="#{customerBean.newCustomer.name}"
+								required="true" id="newCustomerName" label="newCustomerName"
+								requiredMessage="Please Enter Customer Name" maxlength="30" />
+
+							<p:outputLabel value="Address :" for="newCustomerAddress" />
+							<p:inputText value="#{customerBean.newCustomer.address}"
+								id="newCustomerAddress" maxlength="50" />
+
+							<p:outputLabel value="Mobile :" for="newCustomerPhone" />
+							<pe:inputNumber value="#{customerBean.newCustomer.phone}"
+								required="true" id="newCustomerPhone" decimalPlaces="0"
+								thousandSeparator="" requiredMessage="Please Enter Mobile!"
+								maxlength="10" maxValue="9999999999" />
+							<f:facet name="footer">
+								<p:commandButton value="Submit"
+									update=":form:dataTable, :form:messages"
+									oncomplete=" handlePageSubmitRequest(xhr, status, args, 'newCustDlg','newUserForm');"
+									actionListener="#{customerBean.saveCustomer}" />
+								<p:commandButton type="reset" value="Reset"></p:commandButton>
+							</f:facet>
+						</p:panelGrid>
+					</h:form>
+				</p:dialog>
+
+				<p:dialog header="Customer Detail" widgetVar="editCustomerDialog"
+					resizable="false" id="editCustDlg" draggable="true" modal="true"
+					closeOnEscape="true">
+					<h:form id="customerDetailForm">
+						<p:panelGrid id="editUser" columns="2" cellpadding="4"
+							style="margin:0 auto" styleClass="panelGrid">
+							
+							<p:outputLabel value="Name :" for="editCustomerName" />
+							<p:inputText value="#{customerBean.selectedCustomer.name}"
+								required="true" id="editCustomerName" label="editCustomerName"
+								requiredMessage="Please Enter Customer Name" maxlength="30" />
+
+							<p:outputLabel value="Address :" for="editCustomerAddress" />
+							<p:inputText value="#{customerBean.selectedCustomer.address}"
+								id="editCustomerAddress" maxlength="50" />
+								
+							<p:outputLabel value="Phone :" for="editCustomerPhone" />
+							<pe:inputNumber value="#{customerBean.selectedCustomer.phone}"
+								thousandSeparator="" decimalPlaces="0" required="true"
+								id="editCustomerPhone" maxValue="9999999999"
+								requiredMessage="Please Enter Phone!" maxlength="10" />
+								
+							<f:facet name="footer">
+								<p:commandButton value="Update"
+									update=":form:dataTable, :form:messages"
+									oncomplete="handlePageSubmitRequest(xhr, status, args, 'editCustDlg','customerDetailForm'); "
+									actionListener="#{customerBean.updateCustomer}" />
+								
+							</f:facet>
+						</p:panelGrid>
+					</h:form>
+				</p:dialog>
+
+			</ui:define>
+
+		</ui:composition>
+
+	</h:body>
+
+</f:view>
+</html>
+

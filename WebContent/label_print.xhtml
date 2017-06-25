@@ -1,0 +1,54 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:pe="http://primefaces.org/ui/extensions"
+	xmlns:c="http://java.sun.com/jsp/jstl/core">
+
+<f:view contentType="text/html">
+	<h:head>
+		<title>RW Originals Label Print</title>
+		<style>
+body {
+	width: 8.5in;
+	margin: 0in .1875in;
+}
+
+.label {
+	width: 2.4in;
+	height: 1.25in;
+	padding: .125in .125in 0;
+	margin-top: .1in; /* the gutter */
+	margin-right: .1in; /* the gutter */
+	float: left;
+	word-wrap: break-word;
+	outline: 1px dotted;
+	font-size: smaller;
+	font-family:tims,serif,courier;
+}
+
+.page-break {
+	clear: left;
+	display: block;
+	page-break-after: always;
+}
+</style>
+	</h:head>
+
+	<h:body>
+		<ui:repeat var="sticker" value="#{labelPrintBean.retrieveStickersInfo()}">
+				<div class="label">
+					<p:outputLabel value="#{sticker.productGrpName}" />
+					<br></br>
+					<p:outputLabel value="#{sticker.productName}" />
+				</div>
+				<h:panelGroup layout="block" styleClass="page-break" rendered="#{sticker.quantity % 24 == 0}"/>
+				
+		</ui:repeat>
+	</h:body>
+
+</f:view>
+</html>
+

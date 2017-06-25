@@ -1,0 +1,258 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:fn="http://java.sun.com/jsp/jstl/functions"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:pe="http://primefaces.org/ui/extensions">
+
+<f:view contentType="text/html">
+	<h:head>
+		<script type="text/javascript">
+			function handlePageSubmitRequest(xhr, status, args, dialogName,
+					formName) {
+				dialog = jQuery('#' + dialogName);
+				if (args.validationFailed) {
+					dialog.effect("shake", {
+						times : 3
+					}, 100);
+				} else {
+					clearForm(formName);
+					PF('newExpenseDialog').hide();
+					PF('expenseDetailDialog').hide();
+				}
+			}
+			function clearForm(formName) {
+				jQuery('#' + formName).each(function() {
+					this.reset();
+				});
+			}
+		</script>
+
+	</h:head>
+
+	<h:body>
+		<ui:composition template="templates/template.xhtml">
+
+			<ui:define name="pagebody">
+				<h:form id="form">
+					<p:spacer height="25px"></p:spacer>
+					<p:growl id="messages" showDetail="true" life="3000" />
+					<p:commandButton id="saveBtn" value="Create Expense"
+						icon="ui-icon ui-icon-disk" style="margin:0"
+						oncomplete="PF('newExpenseDialog').show()" />
+					<p:dataTable id="dataTable" var="expenses"
+						value="#{expenseBean.expenses}" paginator="true" rows="10"
+						rowKey="#{expenses.id}" lazy="true"
+						paginatorTemplate="{RowsPerPageDropdown} {FirstPageLink} {PreviousPageLink} {CurrentPageReport} {NextPageLink} {LastPageLink}"
+						selection="#{expenseBean.selectedExpenses}">
+					
+						<f:facet name="header">
+						</f:facet>
+						<p:column sortBy="#{expenses.id}">
+							<f:facet name="header">
+								<h:outputText value="Expense Id" />
+							</f:facet>
+							<p:commandLink value="#{expenses.id}"
+								update=":expenseDetailForm:display"
+								oncomplete="PF('expenseDetailDialog').show()">
+								<f:setPropertyActionListener value="#{expenses}"
+									target="#{expenseBean.selectedExpense}" />
+							</p:commandLink>
+
+
+						</p:column>
+
+						<p:column sortBy="#{expenses.created}">
+							<f:facet name="header">
+								<h:outputText value="Date" />
+							</f:facet>
+							<h:outputText value="#{expenses.created}">
+								<f:convertDateTime pattern="dd/MM/yyyy" type="date" />
+							</h:outputText>
+						</p:column>
+						<p:column sortBy="#{expenses.expenseType.name}">
+							<f:facet name="header">
+								<h:outputText value="Expense Type" />
+							</f:facet>
+							<h:outputText value="#{expenses.expenseType.name}" />
+						</p:column>
+						<p:column sortBy="#{expenses.employeeByEmployeeId.name}">
+							<f:facet name="header">
+								<h:outputText value="For Employee" />
+							</f:facet>
+							<h:outputText value="#{expenses.employeeByEmployeeId.name}" />
+						</p:column>
+						<p:column sortBy="#{expenses.amount}">
+							<f:facet name="header">
+								<h:outputText value="Amount" />
+							</f:facet>
+							<h:outputText value="#{expenses.amount}" />
+						</p:column>
+						<p:column sortBy="#{expenses.particulars}">
+							<f:facet name="header">
+								<h:outputText value="Particulars" />
+							</f:facet>
+							<h:outputText value="#{expenses.particulars}" />
+						</p:column>
+						<p:column sortBy="#{expenses.employeeByCreatedBy.name}" rendered="#{!userSession.getSession().isAuthorized('Employee')}">
+							<f:facet name="header">
+								<h:outputText value="Created By" />
+							</f:facet>
+							<h:outputText value="#{expenses.employeeByCreatedBy.name}" />
+						</p:column>
+					</p:dataTable>
+					<p:blockUI block="dataTable" trigger="dataTable">
+						<br />
+						<p:graphicImage name="/images/ajaxloadingbar.gif" />
+					</p:blockUI>
+				</h:form>
+
+				<p:dialog header="Create New Expense" widgetVar="newExpenseDialog"
+					resizable="false" id="newETDlg" draggable="true" modal="true"
+					closeOnEscape="true" width="300">
+
+					<p:ajax event="close" immediate="true" update="newETDlg"
+						resetValues="true" />
+					<h:form id="newExpenseForm">
+						<p:panelGrid id="displayNewUser" columns="2" cellpadding="4"
+							style="margin:0 auto" styleClass="panelGrid">
+
+							<p:outputLabel for="date" value="Date:" />
+							<p:calendar id="date" value="#{expenseBean.newExpense.created}"
+								pattern="dd/MM/yyyy" showOn="button" maxdate="01/01/2030"
+								required="true" requiredMessage="Please Enter the Date"
+								disabled="true">
+								<f:convertDateTime pattern="dd/MM/yyyy" type="date" />
+							</p:calendar>
+
+							<p:outputLabel value="Company" for="companyName" />
+							<p:selectOneMenu id="companyName" disabled="true"
+								value="#{expenseBean.selectedCompany.id}" required="true">
+								<f:converter converterId="com.fmart.ui.utils.CompanyConverter" />
+								<f:selectItems value="#{constantsBean.getCompanies()}"
+									var="company" itemValue="#{company.id}"
+									itemLabel="#{company.name}" />
+							</p:selectOneMenu>
+
+							<p:outputLabel value="Expense Type" for="expenseTypeList" />
+							<p:autoComplete id="expenseTypeList" dropdown="true"
+								value="#{expenseBean.newExpense.expenseType}"
+								completeMethod="#{expenseBean.populateExpenseTypes}"
+								converter="genericConverter" var="expenseType"
+								itemLabel="#{expenseType.name}" itemValue="#{expenseType.id}"
+								update=":newExpenseForm:employeesList" required="true"
+								requiredMessage="Select Expsense Type">
+								<p:ajax event="itemSelect"
+									listener="#{expenseBean.expsenseTypeChangeListener()}"
+									update=":newExpenseForm:empList"></p:ajax>
+							</p:autoComplete>
+
+							<p:outputLabel value="Employee" for="empList" />
+							<p:autoComplete id="empList" dropdown="true"
+								disabled="#{expenseBean.isSalaryFlag()}"
+								value="#{expenseBean.newExpense.employeeByEmployeeId}"
+								required="true" completeMethod="#{constantsBean.getEmployees()}"
+								requiredMessage="Please Select the Employee for Salary!"
+								converter="genericConverter" var="emp" itemLabel="#{emp.name}"
+								itemValue="#{emp.id}" />
+
+							<p:outputLabel value="Particulars :" for="newExpenseParticular" />
+							<p:inputText value="#{expenseBean.newExpense.particulars}"
+								id="newExpenseParticular" label="newExpenseTypeName"
+								maxlength="50" />
+
+							<p:outputLabel value="Amount :" for="newExpenseAmount" />
+							<pe:inputNumber value="#{expenseBean.newExpense.amount}"
+								thousandSeparator="" decimalPlaces="zero" required="true"
+								id="newExpenseAmount" label="newExpenseAmount" maxlength="30"
+								requiredMessage="Please Enter Expense Amount" />
+
+							<f:facet name="footer">
+								<p:commandButton value="Submit"
+									update=":form:dataTable, :form:messages"
+									oncomplete=" handlePageSubmitRequest(xhr, status, args, 'newExpenseDialog','newExpenseForm');"
+									actionListener="#{expenseBean.saveExpense}" />
+								<p:commandButton type="reset" value="Reset"></p:commandButton>
+							</f:facet>
+						</p:panelGrid>
+					</h:form>
+				</p:dialog>
+
+				<p:dialog header="Expense Type Detail"
+					widgetVar="expenseDetailDialog" resizable="false" id="pgDlg"
+					draggable="true" modal="true" closeOnEscape="true" width="300">
+
+					<p:ajax event="close" immediate="true" update="pgDlg"
+						resetValues="true" />
+
+					<h:form id="expenseDetailForm">
+						<p:panelGrid id="display" columns="2" cellpadding="4"
+							styleClass="panelGrid">
+
+							<p:outputLabel for="expenseDetailDate" value="Date:" />
+							<p:calendar id="expenseDetailDate"
+								value="#{expenseBean.selectedExpense.created}" pattern="dd/MM/yyyy"
+								showOn="button" maxdate="01/01/2030" required="true"
+								requiredMessage="Please Enter the Date">
+								<f:convertDateTime pattern="dd/MM/yyyy" type="date" />
+							</p:calendar>
+
+							<p:outputLabel value="Company" for="detailCompanyName" />
+							<p:selectOneMenu id="detailCompanyName" disabled="true"
+								value="#{expenseBean.selectedExpense.company.id}"
+								required="true">
+								<f:converter converterId="com.fmart.ui.utils.CompanyConverter" />
+								<f:selectItems value="#{constantsBean.getCompanies()}"
+									var="company" itemValue="#{company.id}"
+									itemLabel="#{company.name}" />
+							</p:selectOneMenu>
+
+							<p:outputLabel value="Expense Type" for="expenseTypeList" />
+							<p:autoComplete id="expenseTypeList" dropdown="true"
+								value="#{expenseBean.selectedExpense.expenseType}"
+								completeMethod="#{expenseBean.populateExpenseTypes}"
+								converter="genericConverter" var="expenseType"
+								itemLabel="#{expenseType.name}" itemValue="#{expenseType.id}"
+								update=":expenseDetailForm:detailExpenseTypeList">
+								<p:ajax event="itemSelect"
+									listener="#{expenseBean.expsenseTypeChangeListenerForUpdate()}"
+									update=":expenseDetailForm:empList"></p:ajax>
+							</p:autoComplete>
+
+							<p:outputLabel value="Employee" for="empList" />
+							<p:autoComplete id="empList" dropdown="true"
+								disabled="#{expenseBean.isSalaryFlagForUpdate()}"
+								value="#{expenseBean.selectedExpense.employeeByEmployeeId}"
+								completeMethod="#{constantsBean.getEmployees()}"
+								converter="genericConverter" var="emp" itemLabel="#{emp.name}"
+								itemValue="#{emp.id}" />
+
+							<p:outputLabel value="Particulars :" for="expenseParticular" />
+							<p:inputText value="#{expenseBean.selectedExpense.particulars}"
+								id="expenseParticular" maxlength="50" />
+
+							<p:outputLabel value="Amount :" for="expenseAmount" />
+							<pe:inputNumber value="#{expenseBean.selectedExpense.amount}"
+								thousandSeparator="" decimalPlaces="0" id="expenseAmount"
+								required="true" requiredMessage="Enter the Amount" />
+
+							<f:facet name="footer">
+								<p:commandButton value="Update"
+									update=":form:dataTable, :form:messages"
+									oncomplete="handlePageSubmitRequest(xhr, status, args, 'expenseDetailDialog','expenseDetailForm'); "
+									actionListener="#{expenseBean.updateExpense}" />
+							</f:facet>
+						</p:panelGrid>
+					</h:form>
+				</p:dialog>
+
+			</ui:define>
+
+		</ui:composition>
+	</h:body>
+
+</f:view>
+</html>
+

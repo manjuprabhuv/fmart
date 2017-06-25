@@ -1,0 +1,227 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:pe="http://primefaces.org/ui/extensions">
+
+<f:view contentType="text/html">
+	<h:head>
+		<script type="text/javascript">
+			function handlePageSubmitRequest(xhr, status, args, dialogName,
+					formName) {
+				dialog = jQuery('#' + dialogName);
+				if (args.validationFailed) {
+					dialog.effect("shake", {
+						times : 3
+					}, 100);
+				} else {
+					clearForm(formName);
+					PF('newPaymentDialog').hide();
+					PF('paymentDetailDialog').hide();
+				}
+			}
+			function clearForm(formName) {
+				jQuery('#' + formName).each(function() {
+					this.reset();
+				});
+			}
+		</script>
+
+	</h:head>
+
+	<h:body>
+		<ui:composition template="templates/template.xhtml">
+
+			<ui:define name="pagebody">
+				<h:form id="form">
+					<p:spacer height="25px"></p:spacer>
+					<p:growl id="messages" showDetail="true" life="3000" />
+					<p:commandButton id="saveBtn" value="Create Payment"
+						icon="ui-icon ui-icon-disk" style="margin:0"
+						oncomplete="PF('newPaymentDialog').show()" />
+					<p:dataTable id="dataTable" var="payment"
+						value="#{paymentBean.payments}" paginator="true" rows="10"
+						rowKey="#{payment.id}" lazy="true"
+						paginatorTemplate="{RowsPerPageDropdown} {FirstPageLink} {PreviousPageLink} {CurrentPageReport} {NextPageLink} {LastPageLink}"
+						selection="#{paymentBean.selectedPayments}">
+						<f:facet name="header">
+						</f:facet>
+						<p:column sortBy="#{payment.id}">
+							<f:facet name="header">
+								<h:outputText value="Payment Id" />
+							</f:facet>
+							<p:commandLink value="#{payment.id}"
+								update=":paymentDetailForm:display"
+								oncomplete="PF('paymentDetailDialog').show()">
+								<f:setPropertyActionListener value="#{payment}"
+									target="#{paymentBean.selectedPayment}" />
+							</p:commandLink>
+						</p:column>
+
+						<p:column sortBy="#{payment.created}">
+							<f:facet name="header">
+								<h:outputText value="Date" />
+							</f:facet>
+							<h:outputText value="#{payment.created}">
+								<f:convertDateTime pattern="dd/MM/yyyy" type="date" />
+							</h:outputText>
+						</p:column>
+
+						<p:column sortBy="#{payment.dealer.name}">
+							<f:facet name="header">
+								<h:outputText value="Dealer" />
+							</f:facet>
+							<h:outputText value="#{payment.dealer.name}" />
+						</p:column>
+
+						<p:column sortBy="#{payment.amount}">
+							<f:facet name="header">
+								<h:outputText value="Amount" />
+							</f:facet>
+							<h:outputText value="#{payment.amount}" />
+						</p:column>
+
+						<p:column sortBy="#{payment.employeeByCreatedBy.name}" rendered="#{!userSession.getSession().isAuthorized('Employee')}">
+							<f:facet name="header">
+								<h:outputText value="Created By" />
+							</f:facet>
+							<h:outputText value="#{payment.employeeByCreatedBy.name}" />
+						</p:column>
+					</p:dataTable>
+					<p:blockUI block="dataTable" trigger="dataTable">
+						<br />
+						<p:graphicImage name="/images/ajaxloadingbar.gif" />
+					</p:blockUI>
+				</h:form>
+
+				<p:dialog header="Create New Payment" widgetVar="newPaymentDialog"
+					resizable="false" id="newPaymentDlg" draggable="true" modal="true"
+					closeOnEscape="true" width="400">
+
+					<p:ajax event="close" immediate="true" update="newPaymentDlg"
+						resetValues="true" />
+
+					<h:form id="newPaymentForm">
+						<p:panelGrid id="displayNewPayment" columns="2" cellpadding="4"
+							style="margin:0 auto" styleClass="panelGrid">
+
+							<p:outputLabel for="newPaymentDate" value="Date:" />
+							<p:calendar id="newPaymentDate"
+								value="#{paymentBean.newPayment.created}" pattern="dd/MM/yyyy"
+								showOn="button" maxdate="01/01/2030" required="true"
+								requiredMessage="Please Enter the Date" disabled="true">
+								<f:convertDateTime pattern="dd/MM/yyyy" type="date" />
+							</p:calendar>
+
+							<p:outputLabel value="Company" for="companyName" />
+							<p:selectOneMenu id="companyName" disabled="true"
+								value="#{paymentBean.selectedCompany.id}" required="true">
+								<f:converter converterId="com.fmart.ui.utils.CompanyConverter" />
+								<f:selectItems value="#{constantsBean.getCompanies()}"
+									var="company" itemValue="#{company.id}"
+									itemLabel="#{company.name}" />
+							</p:selectOneMenu>
+
+							<p:outputLabel value="Dealer" for="dealerNewPayment" />
+							<p:autoComplete id="dealerNewPayment" dropdown="true"
+								value="#{paymentBean.selectedDealer}"
+								completeMethod="#{paymentBean.populateDealers}"
+								converter="genericConverter" var="dealer"
+								itemLabel="#{dealer.name}" itemValue="#{dealer.id}"
+								required="true" requiredMessage="Select Dealer">
+								<p:ajax event="itemSelect"
+									listener="#{paymentBean.dealerChangeListener()}"
+									update=":newPaymentForm:newPaymentPendingAmt"></p:ajax>
+							</p:autoComplete>
+
+							<p:outputLabel value="Pending Amount" />
+							<p:outputLabel value="#{paymentBean.pendingAmount}"
+								id="newPaymentPendingAmt" />
+
+							<p:outputLabel value="Amount" for="newPaymentAmt" />
+							<pe:inputNumber value="#{paymentBean.newPayment.amount}"
+								id="newPaymentAmt" label="newPaymentAmt" thousandSeparator=""
+								decimalPlaces="0" />
+
+							<f:facet name="footer">
+								<p:commandButton value="Submit"
+									update=":form:dataTable, :form:messages"
+									oncomplete=" handlePageSubmitRequest(xhr, status, args, 'newPaymentDialog','newPaymentForm');"
+									actionListener="#{paymentBean.savePayment}" />
+								<p:commandButton type="reset" value="Reset"></p:commandButton>
+							</f:facet>
+						</p:panelGrid>
+					</h:form>
+				</p:dialog>
+
+				<p:dialog header="Payment Type Detail"
+					widgetVar="paymentDetailDialog" resizable="false" id="pgDlg"
+					draggable="true" modal="true" closeOnEscape="true" width="400">
+
+					<p:ajax event="close" immediate="true" update="pgDlg"
+						resetValues="true" />
+
+					<h:form id="paymentDetailForm">
+						<p:panelGrid id="display" columns="2" cellpadding="4"
+							styleClass="panelGrid">
+
+							<p:outputLabel for="detailPaymentDate" value="Date:" />
+							<p:calendar id="detailPaymentDate"
+								value="#{paymentBean.selectedPayment.created}" pattern="dd/MM/yyyy"
+								showOn="button" maxdate="01/01/2030" required="true"
+								requiredMessage="Please Enter the Date">
+								<f:convertDateTime pattern="dd/MM/yyyy" type="date" />
+							</p:calendar>
+
+							<p:outputLabel value="Company" for="detailCompanyName" />
+							<p:selectOneMenu id="detailCompanyName" disabled="true"
+								value="#{paymentBean.selectedPayment.company.id}"
+								required="true">
+								<f:converter converterId="com.fmart.ui.utils.CompanyConverter" />
+								<f:selectItems value="#{constantsBean.getCompanies()}"
+									var="company" itemValue="#{company.id}"
+									itemLabel="#{company.name}" />
+							</p:selectOneMenu>
+
+							<p:outputLabel value="Dealer *" for="dealerPaymentDetail" />
+							<p:autoComplete id="dealerPaymentDetail" dropdown="true"
+								value="#{paymentBean.selectedDealer}"
+								completeMethod="#{paymentBean.populateDealers}"
+								converter="genericConverter" var="dealer"
+								itemLabel="#{dealer.name}" itemValue="#{dealer.id}"
+								requiredMessage="Select Dealer">
+								<p:ajax event="itemSelect"
+									listener="#{paymentBean.dealerChangeListener()}"
+									update=":paymentDetailForm:paymentDetailPendingAmt"></p:ajax>
+							</p:autoComplete>
+
+							<p:outputLabel value="Pending Amount" />
+							<p:outputLabel value="#{paymentBean.pendingAmount}"
+								id="paymentDetailPendingAmt" />
+
+							<p:outputLabel value="Amount" for="detailPaymentAmt" />
+							<pe:inputNumber value="#{paymentBean.selectedPayment.amount}"
+								id="detailPaymentAmt" label="detailPaymentAmt"
+								thousandSeparator="" decimalPlaces="0" />
+
+
+							<f:facet name="footer">
+								<p:commandButton value="Update"
+									update=":form:dataTable, :form:messages"
+									oncomplete="handlePageSubmitRequest(xhr, status, args, 'paymentDetailDialog','paymentDetailForm'); "
+									actionListener="#{paymentBean.updatePayment}" />
+							</f:facet>
+						</p:panelGrid>
+					</h:form>
+				</p:dialog>
+
+			</ui:define>
+
+		</ui:composition>
+	</h:body>
+
+</f:view>
+</html>
+

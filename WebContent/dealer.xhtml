@@ -1,0 +1,183 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:pe="http://primefaces.org/ui/extensions">
+
+<f:view contentType="text/html">
+	<h:head>
+
+		<script type="text/javascript">
+			function handlePageSubmitRequest(xhr, status, args, dialogName,
+					formName) {
+				dialog = jQuery('#' + dialogName);
+				if (args.validationFailed) {
+					dialog.effect("shake", {
+						times : 3
+					}, 100);
+				} else {
+					clearForm(formName);
+					PF('newDealerDialog').hide();
+					PF('dealerDetailDialog').hide();
+				}
+			}
+			function clearForm(formName) {
+				jQuery('#' + formName).each(function() {
+					this.reset();
+				});
+			}
+		</script>
+
+	</h:head>
+
+	<h:body>
+		<ui:composition template="templates/template.xhtml">
+
+			<ui:define name="pagebody">
+				<h:form id="form">
+					<p:spacer height="25px"></p:spacer>
+					<p:growl id="messages" showDetail="true" life="3000" />
+					<p:commandButton id="saveBtn" value="Create Dealer"
+						icon="ui-icon ui-icon-disk" style="margin:0"
+						oncomplete="PF('newDealerDialog').show()" />
+					<p:dataTable id="dataTable" var="dealers"
+						value="#{viewDealerManagedBean.dealers}" paginator="true"
+						rows="10" rowKey="#{dealers.id}"
+						selection="#{viewDealerManagedBean.selectedDealers}">
+						<f:facet name="header">
+						</f:facet>
+						<p:column sortBy="#{dealers.name}">
+							<f:facet name="header">
+								<h:outputText value="Name" />
+							</f:facet>
+							<p:commandLink value="#{dealers.name}"
+								update=":dealerDetailForm:display"
+								oncomplete="PF('dealerDetailDialog').show()">
+								<f:setPropertyActionListener value="#{dealers}"
+									target="#{viewDealerManagedBean.selectedDealer}" />
+							</p:commandLink>
+							<!-- <h:outputText value="#{dealers.name}" /> -->
+						</p:column>
+
+						<p:column sortBy="#{dealers.address}">
+							<f:facet name="header">
+								<h:outputText value="Address" />
+							</f:facet>
+							<h:outputText value="#{dealers.address}" />
+						</p:column>
+
+						<p:column sortBy="#{dealers.city}">
+							<f:facet name="header">
+								<h:outputText value="City" />
+							</f:facet>
+							<h:outputText value="#{dealers.city}" />
+						</p:column>
+
+						<p:column sortBy="#{dealers.state}">
+							<f:facet name="header">
+								<h:outputText value="State" />
+							</f:facet>
+							<h:outputText value="#{dealers.state}" />
+						</p:column>
+						<p:column sortBy="#{dealers.mobile}">
+							<f:facet name="header">
+								<h:outputText value="Mobile" />
+							</f:facet>
+							<h:outputText value="#{dealers.mobile}" />
+						</p:column>
+					</p:dataTable>
+					<p:blockUI block="dataTable" trigger="dataTable">
+						<br />
+						<p:graphicImage name="/images/ajaxloadingbar.gif" />
+					</p:blockUI>
+				</h:form>
+				<p:dialog header="Create New Dealer" widgetVar="newDealerDialog"
+					resizable="false" id="newCompDlg" draggable="true" modal="true"
+					closeOnEscape="true">
+					<h:form id="newUserForm">
+						<p:panelGrid id="displayNewUser" columns="2" cellpadding="4"
+							style="margin:0 auto" styleClass="panelGrid">
+							<p:outputLabel value="Name :" for="newDealerName" />
+							<p:inputText value="#{viewDealerManagedBean.newDealer.name}"
+								required="true" id="newDealerName" label="newDealerName"
+								requiredMessage="Please Enter Dealer Name" maxlength="26" />
+
+							<p:outputLabel value="Address :" for="newDealerAddress" />
+							<p:inputText value="#{viewDealerManagedBean.newDealer.address}"
+								id="newDealerAddress" maxlength="45" />
+
+							<p:outputLabel value="City :" for="newDealerCity" />
+							<p:inputText value="#{viewDealerManagedBean.newDealer.city}"
+								id="newDealerCity" maxlength="20" />
+
+							<p:outputLabel value="State :" for="newDealerState" />
+							<p:inputText value="#{viewDealerManagedBean.newDealer.state}"
+								id="newDealerState" maxlength="20" />
+
+							<p:outputLabel value="Mobile Number :" for="newDealerMob" />
+							<pe:inputNumber value="#{viewDealerManagedBean.newDealer.mobile}"
+								required="true" id="newDealerMob" thousandSeparator=""
+								decimalPlaces="0" requiredMessage="Please Enter Mobile Number"
+								maxlength="10" maxValue="9999999999" />
+
+							<f:facet name="footer">
+								<p:commandButton value="Submit"
+									update=":form:dataTable, :form:messages"
+									oncomplete=" handlePageSubmitRequest(xhr, status, args, 'newDealerDlg','newUserForm');"
+									actionListener="#{viewDealerManagedBean.saveDealer}" />
+								<p:commandButton type="reset" value="Reset"></p:commandButton>
+							</f:facet>
+						</p:panelGrid>
+					</h:form>
+				</p:dialog>
+
+				<p:dialog header="Dealer Detail" widgetVar="dealerDetailDialog"
+					resizable="false" id="compDlg" draggable="true" modal="true"
+					closeOnEscape="true">
+					<h:form id="dealerDetailForm">
+						<p:panelGrid id="display" columns="2" cellpadding="4"
+							style="margin:0 auto;" styleClass="panelGrid">
+							<p:outputLabel value="Name :" for="dealerName" />
+							<p:inputText value="#{viewDealerManagedBean.selectedDealer.name}"
+								id="dealerName" required="true"
+								requiredMessage="Please Enter Dealer Name" maxlength="25" />
+
+							<p:outputLabel value="Address :" for="dealerAddress" />
+							<p:inputText id="dealerAddress" maxlength="45"
+								value="#{viewDealerManagedBean.selectedDealer.address}" />
+
+							<p:outputLabel value="City :" for="dealerCity" />
+							<p:inputText value="#{viewDealerManagedBean.selectedDealer.city}"
+								id="dealerCity" maxlength="20" />
+
+							<p:outputLabel value="State :" for="dealerState" />
+							<p:inputText id="dealerState"
+								value="#{viewDealerManagedBean.selectedDealer.state}"
+								maxlength="16" />
+							<p:outputLabel value="Mobile Number :" for="mobNumber" />
+							<pe:inputNumber id="mobNumber"
+								value="#{viewDealerManagedBean.selectedDealer.mobile}"
+								maxValue="9999999999" required="true"
+								requiredMessage="Please Enter Mobile Number" maxlength="10"
+								thousandSeparator="" decimalPlaces="0" />
+
+							<f:facet name="footer">
+								<p:commandButton value="Update"
+									update=":form:dataTable, :form:messages"
+									oncomplete="handlePageSubmitRequest(xhr, status, args, 'DealerDlg','dealerDetailForm'); "
+									actionListener="#{viewDealerManagedBean.updateDealer}" />
+							</f:facet>
+						</p:panelGrid>
+					</h:form>
+				</p:dialog>
+
+			</ui:define>
+
+		</ui:composition>
+	</h:body>
+
+</f:view>
+</html>
+
